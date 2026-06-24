@@ -1,0 +1,37 @@
+{
+  "providers": {
+    "selfhosted": {
+      "baseUrl": "http://localhost:8000/v1",
+      "api": "openai-completions",
+      "apiKey": "$OPENAI_API_KEY",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "maxTokensField": "max_tokens",
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "id": "Qwen3-Coder-Next",
+          "name": "Qwen3-Coder-Next (self-hosted)",
+          "reasoning": false,
+          "input": ["text"],
+          "contextWindow": 262144,
+          "maxTokens": 65536,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+          "compat": { "thinkingFormat": "qwen-chat-template" }
+        },
+        {
+          "id": "GLM-5.1",
+          "name": "GLM-5.1 (self-hosted)",
+          "reasoning": true,
+          "input": ["text"],
+          "contextWindow": 200000,
+          "maxTokens": 65536,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+          "compat": { "thinkingFormat": "zai" }
+        }
+      ]
+    }
+  }
+}

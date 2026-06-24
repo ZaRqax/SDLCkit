@@ -1,0 +1,71 @@
+{
+  "enableAllProjectMcpServers": true,
+  "env": {
+    "GOPRIVATE": "github.com/acme"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(task fmt:*)",
+      "Bash(task lint:*)",
+      "Bash(task test:*)",
+      "Bash(task sqlc:*)",
+      "Bash(task mocks:*)",
+      "Bash(task gen:*)",
+      "Bash(go test:*)",
+      "Bash(go build:*)",
+      "Bash(go vet:*)",
+      "Bash(gofumpt:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(grpcurl:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(task db:migrate:*)",
+      "Bash(task db:refresh:*)",
+      "Bash(go get:*)",
+      "Bash(gh pr merge:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./**/.env)",
+      "Edit(**/repository/postgres/sqlc/**)",
+      "Edit(**/mocks/**)",
+      "Edit(**/gen/**)",
+      "Edit(**/*.pb.go)",
+      "Edit(**/*_gen.go)",
+      "Write(**/repository/postgres/sqlc/**)",
+      "Write(**/mocks/**)",
+      "Write(**/gen/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/format-and-guard.sh pre-edit", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/format-and-guard.sh pre-bash", "timeout": 10 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/format-and-guard.sh post-edit", "timeout": 30 }
+        ]
+      }
+    ]
+  }
+}

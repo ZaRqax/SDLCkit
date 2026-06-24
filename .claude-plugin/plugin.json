@@ -1,0 +1,8 @@
+{
+  "name": "open-model-sdlc-kit",
+  "version": "0.1.0",
+  "description": "Open-model-first SDLC kit for a Go microservices workspace. A gated phase pipeline (spec → clarify → plan → tasks → implement → test → review → pr) over specialist subagents + skills + commands, wired to Serena (semantic code), Atlassian/Jira, and a curated MCP set. Tuned so a lightweight open model (GLM-5.1 / Qwen3-Coder-Next, pi.dev-style) writes high-quality code, and runs unchanged under Claude Code.",
+  "author": { "name": "Acme", "email": "engineering@acme.com" },
+  "homepage": "https://github.com/acme/open-model-sdlc-kit",
+  "keywords": ["sdlc", "spec-driven", "agents", "mcp", "serena", "go", "open-model", "qwen", "glm", "pi"]
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "open-model-sdlc",
+  "description": "Acme's internal Claude Code marketplace.",
+  "owner": { "name": "Acme", "email": "engineering@acme.com" },
+  "plugins": [
+    {
+      "name": "open-model-sdlc-kit",
+      "description": "Open-model-first, spec-driven SDLC pipeline kit: gated phases over specialist subagents + skills + commands, Serena + Atlassian + curated MCP wiring, portable across pi/Qwen/Crush/opencode and Claude Code.",
+      "author": { "name": "Acme" },
+      "category": "workflow",
+      "source": "./"
+    }
+  ]
+}

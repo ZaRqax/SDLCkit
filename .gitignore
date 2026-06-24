@@ -1,0 +1,23 @@
+# Secrets & local config
+.env
+*.local.json
+.claude/settings.local.json
+agents-config/**/.env
+
+# Serena: commit memories + project.yml, ignore the cache
+.serena/cache/
+
+# Optional JSON handoff mirror (canonical handoff is specs/<TASK_ID>-<slug>/handoff.md, committed)
+handoff/*.json
+!handoff/.gitkeep
+
+# Optional graph/drift engine store
+.kit/
+
+# pi MCP extension build output
+agents-config/pi/mcp-extension/node_modules/
+agents-config/pi/mcp-extension/dist/
+
+# OS / editor
+.DS_Store
+*.swp

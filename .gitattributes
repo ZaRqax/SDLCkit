@@ -1,0 +1,16 @@
+# Normalize line endings
+* text=auto eol=lf
+
+# Shell scripts and hooks stay LF + executable semantics
+*.sh   text eol=lf
+.githooks/* text eol=lf
+
+# Mark generated/vendored docs for GitHub Linguist
+docs/**          linguist-documentation
+*.md             linguist-documentation
+templates/**     linguist-documentation
+
+# Treat these as non-diffable binaries if ever added
+*.png binary
+*.jpg binary
+*.zip binary

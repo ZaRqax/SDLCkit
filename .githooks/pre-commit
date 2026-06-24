@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# pre-commit — OPEN-AGENT FALLBACK for the kit's hard guardrails.
+# pi / Qwen Code / Crush / opencode have no PreToolUse hook layer, so the same rules that
+# .claude/hooks enforce for Claude are enforced here for everyone, at commit time + in CI.
+# Wire it up:  git config core.hooksPath .githooks   (setup.sh does this).
+set -euo pipefail
+
+fail() { echo "✗ pre-commit: $1" >&2; exit 1; }
+staged() { git diff --cached --name-only --diff-filter=ACM; }
+
+# 1. Never commit edits to generated code.
+if staged | grep -Eq '(/repository/postgres/sqlc/|/mocks/|/gen/|\.pb\.go$|_gen\.go$)'; then
+  fail "staged changes touch GENERATED code (sqlc/ mocks/ gen/ *.pb.go). Regenerate, don't hand-edit."
+fi
+
+# 2. Never commit a .env or obvious secret file.
+if staged | grep -Eq '(^|/)\.env$'; then
+  fail "a .env file is staged — secrets must never be committed."
+fi
+
+# 3. No partial structs: flag a domain struct literal that looks under-filled (heuristic, warn-then-block
+#    only on the well-known footgun pattern). Reviewers still verify; this catches the obvious cases.
+if git diff --cached -U0 | grep -E '^\+' | grep -Eq 'domain\.[A-Z][A-Za-z0-9]*\{[^}]*\}' ; then
+  # Only block if a literal has a trailing comma-less single/double field AND a // partial marker is absent.
+  if git diff --cached -U0 | grep -E '^\+' | grep -E 'domain\.[A-Z][A-Za-z0-9]*\{' | grep -Eq 'TODO|FIXME|partial'; then
+    fail "a domain struct literal is marked TODO/partial. Fill every field or use optional.T[...] (no partial structs)."
+  fi
+fi
+
+# 4. No Russian (Cyrillic) inside Go code.
+if staged | grep -E '\.go$' >/dev/null 2>&1; then
+  while IFS= read -r f; do
+    [ -f "$f" ] || continue
+    if grep -lP '[\x{0400}-\x{04FF}]' "$f" >/dev/null 2>&1; then
+      fail "Cyrillic found in $f — code, comments, logs and errors must be English."
+    fi
+  done < <(staged | grep -E '\.go$')
+fi
+
+# 5. Branch-name convention (warn only; branches are created from the Jira UI).
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
+if [ -n "$BRANCH" ] && ! printf '%s' "$BRANCH" | grep -Eq '^(feature|fix|hotfix|release)/[A-Z]+-[0-9]+' \
+   && ! printf '%s' "$BRANCH" | grep -Eq '^(main|master|develop)$'; then
+  echo "⚠ pre-commit: branch '$BRANCH' doesn't match <type>/<TASK_ID>-<desc> (e.g. feature/PROJ-123-foo)." >&2
+fi
+
+# 6. Lint + test the Go module if a Taskfile is present (skip with SKIP_KIT_TESTS=1 for WIP commits).
+if [ "${SKIP_KIT_TESTS:-0}" != "1" ] && [ -f Taskfile.yml ] && staged | grep -Eq '\.go$'; then
+  command -v task >/dev/null 2>&1 && { task lint || fail "task lint failed"; task test || fail "task test failed"; }
+fi
+
+echo "✓ pre-commit checks passed"

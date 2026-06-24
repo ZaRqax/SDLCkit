@@ -1,0 +1,43 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "providers": {
+    "selfhosted": {
+      "type": "openai-compat",
+      "base_url": "http://localhost:8000/v1",
+      "api_key": "$OPENAI_API_KEY",
+      "models": [
+        { "id": "Qwen3-Coder-Next", "name": "Qwen3-Coder-Next", "context_window": 262144, "default_max_tokens": 65536 },
+        { "id": "GLM-5.1", "name": "GLM-5.1", "context_window": 200000, "default_max_tokens": 65536 }
+      ]
+    }
+  },
+  "mcp": {
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from", "git+https://github.com/oraios/serena",
+        "serena", "start-mcp-server",
+        "--context", "agent", "--project-from-cwd",
+        "--mode", "planning", "--mode", "editing"
+      ],
+      "env": { "GOPRIVATE": "github.com/acme", "GITHUB_TOKEN": "$GITHUB_PAT" }
+    },
+    "atlassian": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "JIRA_URL", "-e", "JIRA_USERNAME", "-e", "JIRA_API_TOKEN",
+        "-e", "CONFLUENCE_URL", "-e", "CONFLUENCE_USERNAME", "-e", "CONFLUENCE_API_TOKEN",
+        "-e", "JIRA_PROJECTS_FILTER", "-e", "CONFLUENCE_SPACES_FILTER",
+        "-e", "READ_ONLY_MODE", "-e", "ENABLED_TOOLS",
+        "ghcr.io/sooperset/mcp-atlassian:latest"
+      ]
+    },
+    "context7": { "type": "stdio", "command": "npx", "args": ["-y", "@upstash/context7-mcp@latest"] },
+    "sequential-thinking": { "type": "stdio", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-sequentialthinking"] },
+    "git": { "type": "stdio", "command": "uvx", "args": ["mcp-server-git", "--repository", "$WORKSPACE_ROOT"] },
+    "fetch": { "type": "stdio", "command": "uvx", "args": ["mcp-server-fetch"] }
+  }
+}

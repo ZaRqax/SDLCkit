@@ -1,0 +1,10 @@
+{
+  "name": "pi-mcp-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Bridges MCP servers (Serena, Atlassian, context7, ...) into the pi coding agent, which has no native MCP. Reads a Claude-Code-style mcpServers config and exposes each MCP tool as a pi tool named mcp_<server>_<tool>.",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
