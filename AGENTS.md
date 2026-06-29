@@ -72,6 +72,9 @@ as plain runbooks for agents without slash commands.
 | 7 | **review** | review notes; cross-check spec ↔ plan ↔ tasks ↔ code | fix every blocker |
 | 8 | **pr** | a `[WIP] [TASK_ID]` PR with an ordered change list + checklist | human merges |
 
+Which specialist agents are wired into this pipeline is data-driven via `config/pipeline.yaml` (a team
+may turn some off — e.g. an infra specialist); the phases above are fixed. Don't assume a fixed roster.
+
 Every phase also updates **`specs/<TASK_ID>-<slug>/handoff.md`** (from `templates/handoff-template.md`)
 — the legible, committed state file: set Status + Phase + Next agent, tick the checklist, append a Log
 line. It is how the next phase (or the next session) knows exactly where the work stands.
@@ -217,13 +220,15 @@ with `task sqlc` / `task mocks` / contracts `task gen`.
 reads, reading the Jira ticket.
 
 **Ask first:** package installs / `go get`; DB migrations (`task db:migrate:*`, `task db:refresh`);
-any change touching >1 service or crossing a service boundary; `git push`; creating/transitioning a
-Jira issue if you are unsure it's wanted.
+any change touching >1 service or crossing a service boundary; `git push`; `kubectl delete`,
+`terraform apply`, `git reset --hard`; creating/transitioning a Jira issue if you are unsure it's wanted.
 
 **Never:** commit secrets or a `.env`; hand-edit generated code (`sqlc/`, `mocks/`, `gen/`); push to
 `main`/`develop`/`release/*`; merge a PR yourself; construct a partial domain struct; leave code that
 doesn't compile or skips `task lint`/`task test`; write Russian in code; invent an API you didn't
-verify.
+verify; run a destructive shell command — `rm -rf /` (or `~`/`$HOME`), force-push, `DROP DATABASE`,
+`terraform destroy`. The full, canonical list is **`config/security-policy.yaml`** (the Claude hook
+hard-blocks these; open agents must self-enforce).
 
 ---
 

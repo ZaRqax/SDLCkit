@@ -1,0 +1,64 @@
+# security-policy.yaml — the kit's declarative safety policy (adapted from pi-sdlc-kit).
+#
+# This file is the human-readable SOURCE OF TRUTH for what agents must never do and what needs a
+# human in the loop. Enforcement is LAYERED (see KIT-DEV.md): this text is context; the real gates are
+#   - Claude Code: .claude/settings.json (permissions.ask / .deny) + .claude/hooks/format-and-guard.sh
+#   - open agents (pi/Qwen/Crush/opencode): AGENTS.md §8 boundaries + .githooks/pre-commit + CI
+# Keep this file, the hook, and settings.json IN SYNC — if you change one, change the others.
+
+security:
+  # External systems (Jira/Confluence/GitHub/cluster) are read-by-default; writes need a human.
+  default_mode: read_only_external_systems
+
+  secrets:
+    # Never commit, never read into context, never echo:
+    never_touch:
+      - .env                      # gitignored; setup.sh never tracks it; hook/settings deny reads
+      - "**/.env"
+      - tokens / API keys (GITHUB_PAT, JIRA_API_TOKEN, OPENAI_API_KEY, CONTEXT7_API_KEY)
+      - cookies / session files
+      - ssh private keys
+      - production database URLs
+
+  github:
+    write_requires_human_confirmation: true   # PRs need [WIP]/draft + 2 approvals; never self-merge
+    never:
+      - push to protected branches (main / develop / release/*)
+      - merge a PR yourself (gh pr merge)
+
+  atlassian:
+    write_requires_human_confirmation: true   # creating/transitioning issues only when clearly wanted
+    scope: "JIRA_PROJECTS_FILTER (PROJ,TEAM) only — never touch other projects"
+    read_only_profile: "set ATLASSIAN_READ_ONLY=true to disable every write tool"
+
+  shell:
+    # HARD BLOCK — refused outright by the pre-bash hook (Claude) and called out in AGENTS.md §8.
+    # These are unrecoverable or protected-branch-destroying; there is no legitimate agent use.
+    blocked:
+      - "rm -rf /"           # and /*, ~, $HOME — filesystem wipes
+      - "git push --force"   # and -f / --force-with-lease to protected branches — rewrites shared history
+      - "drop database"      # and DROP SCHEMA — destructive raw SQL (schema changes go through migrations)
+      - "terraform destroy"  # tears down infrastructure
+    # ASK FIRST — allowed, but require explicit human confirmation (settings.json permissions.ask).
+    confirm:
+      - "kubectl delete"     # deleting live cluster objects (k8s-access is read-oriented)
+      - "terraform apply"    # mutating infrastructure
+      - "git reset --hard"   # discards uncommitted work
+      - "git push"           # to any branch
+      - "git commit"
+      - "go get"             # dependency changes
+      - "task db:migrate:*"  # schema migrations
+      - "task db:refresh"    # drop + re-migrate + re-seed
+
+  generated_code:
+    # Never hand-edit; regenerate from the source. Enforced by the pre-edit hook + settings.deny.
+    never_edit:
+      - "**/repository/postgres/sqlc/**"   # -> task sqlc
+      - "**/mocks/**"                       # -> task mocks
+      - "**/gen/**"                         # -> task gen (contracts repo)
+      - "**/*.pb.go"
+      - "**/*_gen.go"
+
+  sandbox:
+    recommended_for_untrusted_repos: true
+    options: [docker, devcontainer, vm]

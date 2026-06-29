@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Built for open models](https://img.shields.io/badge/built%20for-open%20models-8A2BE2)
 ![Works with Claude Code](https://img.shields.io/badge/works%20with-Claude%20Code-D97757)
-![Agents](https://img.shields.io/badge/agents-pi%20·%20Qwen%20·%20Crush%20·%20opencode-1f6feb)
+![Agents](https://img.shields.io/badge/agents-pi%20·%20Qwen%20·%20Crush%20·%20opencode%20·%20omp-1f6feb)
 ![Stack](https://img.shields.io/badge/stack-Go%20microservices-00ADD8?logo=go&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-Serena%20·%20Jira%20·%20context7-111)
 
@@ -16,7 +16,7 @@
 ---
 
 > **One canonical instruction file. A gated phase pipeline. The right MCP tools.**
-> Drop the kit into a Go microservices workspace and any agent — pi, Qwen Code, Crush, opencode, or
+> Drop the kit into a Go microservices workspace and any agent — pi, Qwen Code, Crush, opencode, omp, or
 > Claude Code — drives a ticket from **spec → clarify → plan → tasks → implement → test → review → pr**,
 > producing a reviewable artifact at every gate.
 
@@ -58,7 +58,7 @@ Full design rationale: **[docs/weak-model-playbook.md](docs/weak-model-playbook.
 ## 🧩 The two ideas that make it work
 
 **1. One source, many harnesses.** Every durable rule lives once in [`AGENTS.md`](AGENTS.md). pi, Qwen
-Code, Crush, and opencode read it natively; Claude Code reads it through a one-line `@AGENTS.md` shim in
+Code, Crush, opencode, and omp read it natively; Claude Code reads it through a one-line `@AGENTS.md` shim in
 [`CLAUDE.md`](CLAUDE.md). Per-service detail goes in a nested `AGENTS.md` (nearest file wins) — never
 forked. Edit once, every agent gets it.
 
@@ -98,9 +98,11 @@ knows exactly where the work stands. Details: **[FLOW.md](FLOW.md)**.
 | Agent | Role | How it runs the pipeline |
 |---|---|---|
 | **Claude Code** | first-class | Reads `.claude/` subagents, commands, skills, hooks + `.mcp.json`. Zero extra config. |
-| **pi** (pi.dev) | **primary open agent** | `setup.sh pi` wires MCP (`pi-mcp-adapter`), the 6 subagents (`/run`, `/chain`), read-only plan mode, and background jobs — near Claude-Code parity. |
-| **Qwen Code** | secondary | Native MCP via `.qwen/settings.json`; reads `AGENTS.md`. |
-| **Crush** / **opencode** | secondary | Read `AGENTS.md` + their own MCP config; commands double as plain runbooks. |
+| **pi** (pi.dev) | **primary open agent** | `setup.sh pi` wires MCP (`pi-mcp-adapter`), the pipeline subagents (`/run`, `/chain`; the active set follows `config/pipeline.yaml`), read-only plan mode, and background jobs — near Claude-Code parity. |
+| **opencode** | secondary (near-parity) | `setup.sh opencode` wires MCP (`opencode.json`) and **generates** all subagents (`.opencode/agent/`) + commands (`.opencode/command/`) from the same `.claude/` source — like pi. |
+| **omp** (oh-my-pi) | secondary (native) | A batteries-included **Pi fork** that reads `.claude/{agents,commands,skills,rules}` + `AGENTS.md` + `.mcp.json` **natively** — `setup.sh omp` just installs the binary; nothing to generate. |
+| **Qwen Code** | secondary (first-class) | `setup.sh qwen` wires MCP + permissions + guard hooks and **generates** subagents/commands/skills (`.qwen/`); reads `AGENTS.md`. |
+| **Crush** | secondary | Reads `AGENTS.md` + `crush.json` MCP config; commands double as plain runbooks. |
 
 Different models can map to different roles (e.g. a stronger model for planning/review, a faster one for
 implementation) — see `agents-config/pi/subagent-config.json`.
@@ -123,7 +125,8 @@ Core set lives in [`.mcp.json`](.mcp.json); the full menu (filesystem, postgres,
 ```bash
 cp .env.example .env          # fill in tokens (GITHUB_PAT, JIRA_*, OPENAI_*)
 ./setup.sh                    # pick your agent, wire MCP, install git hooks, verify
-# non-interactive: ./setup.sh pi | qwen | crush | opencode | claude
+# non-interactive: ./setup.sh pi | qwen | crush | opencode | claude | omp
+# toggle agents on/off:  edit config/pipeline.yaml, then ./setup.sh --pipeline
 ```
 
 Then drive a ticket through the pipeline:
@@ -132,14 +135,15 @@ Then drive a ticket through the pipeline:
   or let it auto-delegate to the subagents.
 - **pi** — `./setup.sh pi`, then `pi --model selfhosted/Qwen3-Coder-Next`; run `/run planner "spec PROJ-1234"`
   or `/chain` the phases. See [`agents-config/pi/README.md`](agents-config/pi/README.md).
-- **Qwen Code / Crush / opencode** — start the agent in the repo; it reads `AGENTS.md` + its MCP config.
+- **Qwen Code / Crush / opencode / omp** — start the agent in the repo; it reads `AGENTS.md` + its MCP
+  config (omp inherits `.claude/` + `.mcp.json` natively — see `agents-config/omp/README.md`).
 
 Full setup & per-agent notes: **[INSTALL.md](INSTALL.md)**.
 
 ## 📦 What's in the box
 
 ```
-AGENTS.md            ← THE canonical instructions (read by pi/Qwen/Crush/opencode/Codex/Cursor)
+AGENTS.md            ← THE canonical instructions (read by pi/Qwen/Crush/opencode/omp/Codex/Cursor)
 CLAUDE.md            ← one-line @AGENTS.md shim + Claude-only extras  (single source of truth)
 .mcp.json            ← core MCP set: Serena + Atlassian + context7 + sequential-thinking + git + fetch
 mcp.example.json     ← full MCP menu incl. optional servers
@@ -147,16 +151,21 @@ mcp.example.json     ← full MCP menu incl. optional servers
 setup.sh             ← idempotent bootstrap (pick agent, wire MCP, verify)
 
 agents-config/       ← per-agent adapters, all pointing at ONE OpenAI-compatible /v1 endpoint
-  pi/                ← PRIMARY: models + packages + generated subagents + fallback MCP bridge
-  qwen/ crush/ opencode/   ← secondary harnesses (native MCP)
+  pi/                ← PRIMARY: models + packages + generated subagents + MCP adapter config
+  qwen/ crush/ opencode/ omp/   ← secondary harnesses (native MCP; omp reads .claude/ directly)
   sampling-params.md ← pinned GLM-5.1 / Qwen3-Coder-Next sampling
 
+config/              ← pipeline.yaml (toggle which agents run) + security-policy.yaml (safety policy)
+
 .claude/
-  agents/            ← 6 specialist subagents (planner, tech-designer, engineer, qa-lead,
-                       go-code-reviewer, devops-lead)
+  agents/            ← phase subagents (planner, tech-designer, engineer, qa-lead,
+                       go-code-reviewer, devops-lead) + rlm (recursive solver, utility).
+                       Which ones are active is governed by config/pipeline.yaml.
   commands/          ← 8 phase commands (/spec /clarify /plan /tasks /implement /test /review /pr)
-  skills/            ← 7 skills (serena-first, precommit, go-grpc-handler, sqlc-migration,
-                       testify-suite, commit-message, jira-flow)
+                       + /rlm (recursive solver, utility)
+  skills/            ← serena-first, precommit, go-grpc-handler, sqlc-migration, testify-suite,
+                       test-debug-loop, codebase-onboarding, rlm-recursive, commit-message, jira-flow
+  workflows/         ← rlm (genuine bounded-recursion engine behind /rlm under Claude Code)
   rules/             ← path-scoped Go-layering rules (load only when editing internal/**)
   settings.json      ← permissions + hooks (the Claude enforcement layer)
 .githooks/pre-commit ← the SAME guardrails for open agents (no hook layer) + CI
@@ -182,11 +191,24 @@ The kit ships pre-filled with placeholders so the examples read like real code. 
 Project-specific rules go in a **nested `AGENTS.md`** (template: `AGENTS.nested.example.md`) — the kit's
 base stays untouched and upgradeable.
 
+**Turn agents on/off.** `config/pipeline.yaml` is the single source of truth for which agents run. Set
+`enabled: false` on any you don't want (e.g. `devops-lead` if your team has no infra work, or `rlm`),
+then `./setup.sh --pipeline` — it parks the disabled agent (`.md` → `.md.disabled`, so Claude stops
+seeing it), re-generates the pi/opencode copies without it, and re-verifies. Reversible: flip the flag
+back and re-run.
+
+**Tune the reviewer.** `go-code-reviewer` does a universal multi-pass Go review (correctness,
+SOLID/DRY/KISS/YAGNI, idioms, security, tests) plus a clearly-marked `PROJECT-SPECIFIC RULES` block
+(between `<!-- BEGIN/END PROJECT RULES -->` in `.claude/agents/go-code-reviewer.md`) seeded with the
+interface/mapper/partial-struct conventions — edit that block to encode your team's house rules.
+
 ## ✅ Prerequisites
 
-`uv`/`uvx` (Serena, git/fetch MCP) · Node 18+ (`npx` servers, pi/Qwen) · Docker (Atlassian MCP) ·
-Go toolchain + [`go-task`](https://taskfile.dev) · a `GITHUB_PAT` so Serena/gopls can index private
-modules.
+`uv`/`uvx` (Serena, Atlassian, git/fetch MCP) · Node 18+ (`npx` servers, pi/Qwen) · `python3` (subagent
+porters + guard hook) · Docker (optional — local-infra stack only) · Go toolchain +
+[`go-task`](https://taskfile.dev) · a `GITHUB_PAT` so Serena/gopls can index private modules.
+
+Runs on **Linux or macOS** (scripts stay compatible with macOS bash 3.2 + BSD userland; WSL = Linux).
 
 ## 📚 Documentation
 

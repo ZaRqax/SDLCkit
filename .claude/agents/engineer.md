@@ -8,6 +8,7 @@ description: >
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: inherit
 skills:
+  - requirements-clarify
   - serena-first
   - go-grpc-handler
   - sqlc-migration

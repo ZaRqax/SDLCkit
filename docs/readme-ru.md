@@ -49,7 +49,7 @@ gRPC/Kafka/Postgres/OpenSearch). Единственная цель кита — 
 | Сервер | Зачем именно слабой модели |
 |---|---|
 | **Serena** (семантический код через gopls) | Правки и чтение на уровне символов вместо целых файлов → меньше токенов и почти нет «битых» патчей. Главный выигрыш. |
-| **Atlassian / Jira** (sooperset, Docker) | Читает реальный тикет; в read-write профиле создаёт/обновляет/переводит истории. Скоуп `JIRA_PROJECTS_FILTER=PROJ,TEAM`. |
+| **Atlassian / Jira** (sooperset, через `uvx` — процесс, не Docker) | Читает реальный тикет; в read-write профиле создаёт/обновляет/переводит истории. Скоуп `JIRA_PROJECTS_FILTER=PROJ,TEAM`. |
 | **context7** | Живая, версионно-привязанная документация библиотек → убивает галлюцинации/устаревшие API. |
 | **sequential-thinking** | Принудительная декомпозиция задачи перед кодом. |
 | **git**, **fetch** | Безопасные структурные git-операции; подтягивание внешних спек/доков по запросу. |
@@ -85,8 +85,12 @@ agents-config/        ← адаптеры под агентов, все на о
   qwen/ crush/ opencode/   ← вторичные агенты (нативный MCP)
   sampling-params.md  ← запиненный sampling GLM-5.1 / Qwen3-Coder-Next
 
+config/    ← pipeline.yaml (включение/отключение агентов) + security-policy.yaml (политика безопасности)
+
 .claude/
-  agents/   ← 6 сабагентов: planner, tech-designer, engineer, qa-lead, go-code-reviewer, devops-lead
+  agents/   ← субагенты-фазы: planner, tech-designer, engineer, qa-lead, go-code-reviewer,
+              devops-lead + rlm (рекурсивный солвер, утилита). Активный набор задаёт config/pipeline.yaml
+              (отключить агента: enabled: false, затем ./setup.sh --pipeline)
   commands/ ← 8 команд-фаз: /spec /clarify /plan /tasks /implement /test /review /pr
   skills/   ← 7 скиллов: serena-first, precommit, go-grpc-handler, sqlc-migration, testify-suite,
               commit-message, jira-flow
@@ -186,9 +190,8 @@ Co-primary модели: **GLM-5.1** и **Qwen3-Coder-Next**, по OpenAI-сов
 
 - **Точные sampling GLM-5.1** — модель новая; в `sampling-params.md` стоит официальный бейслайн
   с пометкой «verify» — свериться с актуальной карточкой модели / доками Z.ai.
-- **MCP в pi — по умолчанию пакет `pi-mcp-adapter`** (ставится `setup.sh pi`, читает
-  `~/.pi/agent/mcp.json`). Самописный мост `agents-config/pi/mcp-extension/` оставлен как
-  **задокументированный fallback** (его вызовы MCP-SDK помечены `INFERRED`); включать оба нельзя.
+- **MCP в pi — пакет `pi-mcp-adapter`** (ставится `setup.sh pi`, читает `~/.pi/agent/mcp.json`);
+  у pi нет нативного MCP, поэтому серверы бриджит именно этот пакет.
 - **Версии pi-пакетов запинены** (сверено по npm-реестру 2026-06-24): `pi-mcp-adapter@2.10.0`,
   `pi-subagents@0.31.0`, `@pi-vault/pi-plan@0.1.0`, `pi-patty-bg-tasks@0.2.0`; pi CLI
   `@earendil-works/pi-coding-agent@0.80.2`. **`@pi-vault/pi-plan` требует Node ≥ 24.15.0.** Сверить имена

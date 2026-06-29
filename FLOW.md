@@ -55,5 +55,14 @@ the optional automation/graph layer — see `docs/optional-graph-engine.md`.)
   in `.claude/agents/` by description.
 - **pi / Qwen Code / Crush / opencode:** the same command files in `.claude/commands/` read as plain
   runbooks — paste or reference them; the AGENTS.md workflow (§2) drives the same phases.
+- **omp (oh-my-pi):** reads `.claude/commands/` as native slash commands and `.claude/agents/` as
+  subagents directly (plus `AGENTS.md` + `.mcp.json`) — like Claude, no generated copies.
 - **Bug flow:** a bug still gets a spec (type: fix). For a tracked bug, planner files/links a Jira Bug
   via the `jira-flow` skill before the fix is written.
+
+## Configuring which agents run
+The roster is data, not hard-wired: `config/pipeline.yaml` lists each agent with an `enabled` flag.
+Disable the ones you don't use (e.g. `devops-lead` if you have no infra work, or the `rlm` utility) and
+run `./setup.sh --pipeline` — it removes them from every harness and re-verifies. The five core-phase
+agents (planner, tech-designer, engineer, qa-lead, go-code-reviewer) each own a phase above, so keep
+them on unless you intend to run that phase's command by hand. Mechanics: KIT-DEV.md.

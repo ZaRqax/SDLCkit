@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check-kit:
+    name: Verify kit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify kit structure (scripts/check-kit.sh)
+        run: bash scripts/check-kit.sh
+
+      - name: No internal identifiers leaked
+        run: |
+          if git grep -nIiE 'quintegro|partfinder|thor[-_]|/home/[a-z]+/work' -- . ':!docs/readme-ru.md' ':!.github/workflows/ci.yml'; then
+            echo "::error::Internal identifier found — keep the kit generic (use placeholders: acme, PROJ, your-org)."
+            exit 1
+          fi
+          echo "Clean: no internal identifiers in tracked files."

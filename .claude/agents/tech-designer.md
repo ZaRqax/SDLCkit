@@ -8,6 +8,7 @@ description: >
 tools: Read, Write, Bash, Grep, Glob
 model: opus
 skills:
+  - requirements-clarify
   - serena-first
 ---
 

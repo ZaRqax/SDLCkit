@@ -1,5 +1,5 @@
 {
-  "_README": "MCP servers for pi. pi has NO native MCP — the kit DEFAULT is the `pi-mcp-adapter` package (declared in settings.json packages[]); the hand-rolled ./mcp-extension/ is a documented offline fallback. BOTH read THIS file (mcpServers format). pi-mcp-adapter reads it with precedence (later wins): ~/.config/mcp/mcp.json, ~/.pi/agent/mcp.json, .mcp.json, .pi/mcp.json — setup.sh copies this to ~/.pi/agent/mcp.json, so no `/mcp setup` is needed. `directTools` promotes hot tools to first-class (instant, no proxy); `lifecycle: lazy` spawns a server only on first use; `keep-alive` keeps Serena warm. Differences vs the root .mcp.json: Serena --context is `agent`, `filesystem` is included (open agents lack Claude's sandbox), and adapter keys (lifecycle/directTools/idleTimeout) are added. Run only ONE MCP layer at a time (adapter OR the fallback bridge).",
+  "_README": "MCP servers for pi. pi has NO native MCP — the kit uses the `pi-mcp-adapter` package (declared in settings.json packages[]), which reads THIS file (mcpServers format). pi-mcp-adapter reads it with precedence (later wins): ~/.config/mcp/mcp.json, ~/.pi/agent/mcp.json, .mcp.json, .pi/mcp.json — setup.sh copies this to ~/.pi/agent/mcp.json, so no `/mcp setup` is needed. `directTools` promotes hot tools to first-class (instant, no proxy); `lifecycle: lazy` spawns a server only on first use; `keep-alive` keeps Serena warm. Differences vs the root .mcp.json: Serena --context is `agent`, `filesystem` is included (open agents lack Claude's sandbox), and adapter keys (lifecycle/directTools/idleTimeout) are added.",
   "mcpServers": {
     "serena": {
       "command": "uvx",
@@ -16,15 +16,8 @@
       "directTools": ["find_symbol", "get_symbols_overview", "replace_symbol_body", "insert_after_symbol", "find_referencing_symbols"]
     },
     "atlassian": {
-      "command": "docker",
-      "args": [
-        "run", "-i", "--rm",
-        "-e", "JIRA_URL", "-e", "JIRA_USERNAME", "-e", "JIRA_API_TOKEN",
-        "-e", "CONFLUENCE_URL", "-e", "CONFLUENCE_USERNAME", "-e", "CONFLUENCE_API_TOKEN",
-        "-e", "JIRA_PROJECTS_FILTER", "-e", "CONFLUENCE_SPACES_FILTER",
-        "-e", "READ_ONLY_MODE", "-e", "ENABLED_TOOLS",
-        "ghcr.io/sooperset/mcp-atlassian:latest"
-      ],
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
       "env": {
         "JIRA_URL": "${JIRA_URL}",
         "JIRA_USERNAME": "${JIRA_USERNAME}",

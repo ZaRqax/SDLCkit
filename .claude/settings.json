@@ -26,10 +26,13 @@
     "ask": [
       "Bash(git push:*)",
       "Bash(git commit:*)",
+      "Bash(git reset --hard:*)",
       "Bash(task db:migrate:*)",
       "Bash(task db:refresh:*)",
       "Bash(go get:*)",
-      "Bash(gh pr merge:*)"
+      "Bash(gh pr merge:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(terraform apply:*)"
     ],
     "deny": [
       "Read(./.env)",

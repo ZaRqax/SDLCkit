@@ -11,7 +11,8 @@ compatibility:
 
 # jira-flow — read & update Jira / Confluence over the Atlassian MCP
 
-This kit ships **sooperset/mcp-atlassian** (Docker). The default profile is **read-write via a
+This kit ships **sooperset/mcp-atlassian**, run locally as a process via `uvx mcp-atlassian` (no
+Docker — avoids the orphaned-container problem). The default profile is **read-write via a
 service account**, scoped to `JIRA_PROJECTS_FILTER=PROJ,TEAM`. Tool names are `mcp__atlassian__*`.
 
 **Read-only profile.** If the deployment sets `ATLASSIAN_READ_ONLY=true`, every write tool

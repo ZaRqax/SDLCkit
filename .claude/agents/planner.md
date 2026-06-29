@@ -9,6 +9,7 @@ description: >
 tools: Read, Write, Bash, Grep, Glob, mcp__atlassian
 model: opus
 skills:
+  - requirements-clarify
   - jira-flow
   - commit-message
 ---

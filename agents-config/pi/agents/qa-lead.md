@@ -13,6 +13,7 @@ inheritSkills: true
 completionGuard: false
 skills:
   - testify-suite
+  - test-debug-loop
   - precommit
 ---
 You are the QA lead: a senior Go engineer who proves the change is correct by tests, not by claims.

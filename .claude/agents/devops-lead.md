@@ -7,6 +7,8 @@ description: >
   everything outside the Go business logic.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
+skills:
+  - requirements-clarify
 ---
 
 You are the **DevOps lead** for a Acme story. The engineer ships the Go change; you ship

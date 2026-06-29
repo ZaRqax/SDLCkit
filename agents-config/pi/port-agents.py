@@ -22,8 +22,19 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.normpath(os.path.join(HERE, "..", "..", ".claude", "agents"))
+ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
+SRC = os.path.join(ROOT, ".claude", "agents")
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "agents")
+
+# Honor the pipeline toggle (config/pipeline.yaml) so a disabled agent is never generated for pi.
+# Fail open: if the shared parser or the config is unavailable, port every agent.
+sys.path.insert(0, os.path.join(ROOT, "scripts"))
+try:
+    import pipeline_config
+
+    DISABLED = set(pipeline_config.disabled_agents())
+except Exception:  # noqa: BLE001 — any import/parse failure must not break porting
+    DISABLED = set()
 
 TOOL_MAP = {
     "Read": "read", "Write": "write", "Edit": "edit", "Bash": "bash",
@@ -129,9 +140,13 @@ def main():
     if not os.path.isdir(SRC):
         sys.exit(f"source agents dir not found: {SRC}")
     os.makedirs(OUT, exist_ok=True)
-    n = 0
+    n, skipped = 0, 0
     for fn in sorted(os.listdir(SRC)):
         if not fn.endswith(".md"):
+            continue
+        if os.path.splitext(fn)[0] in DISABLED:  # pipeline toggle: agent off
+            skipped += 1
+            print(f"  skipped {fn} (disabled in config/pipeline.yaml)")
             continue
         res = port(os.path.join(SRC, fn))
         if not res:
@@ -141,7 +156,7 @@ def main():
             f.write(text)
         print(f"  ported {name} -> {OUT}/{name}.md")
         n += 1
-    print(f"ported {n} agents to pi-subagents format")
+    print(f"ported {n} agents to pi-subagents format" + (f" ({skipped} disabled)" if skipped else ""))
 
 
 if __name__ == "__main__":

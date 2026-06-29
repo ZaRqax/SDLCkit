@@ -29,14 +29,19 @@
     },
     "atlassian": {
       "type": "local",
-      "command": [
-        "docker", "run", "-i", "--rm",
-        "-e", "JIRA_URL", "-e", "JIRA_USERNAME", "-e", "JIRA_API_TOKEN",
-        "-e", "CONFLUENCE_URL", "-e", "CONFLUENCE_USERNAME", "-e", "CONFLUENCE_API_TOKEN",
-        "-e", "JIRA_PROJECTS_FILTER", "-e", "CONFLUENCE_SPACES_FILTER",
-        "-e", "READ_ONLY_MODE", "-e", "ENABLED_TOOLS",
-        "ghcr.io/sooperset/mcp-atlassian:latest"
-      ],
+      "command": ["uvx", "mcp-atlassian"],
+      "environment": {
+        "JIRA_URL": "{env:JIRA_URL}",
+        "JIRA_USERNAME": "{env:JIRA_USERNAME}",
+        "JIRA_API_TOKEN": "{env:JIRA_API_TOKEN}",
+        "CONFLUENCE_URL": "{env:CONFLUENCE_URL}",
+        "CONFLUENCE_USERNAME": "{env:CONFLUENCE_USERNAME}",
+        "CONFLUENCE_API_TOKEN": "{env:CONFLUENCE_API_TOKEN}",
+        "JIRA_PROJECTS_FILTER": "{env:JIRA_PROJECTS_FILTER}",
+        "CONFLUENCE_SPACES_FILTER": "{env:CONFLUENCE_SPACES_FILTER}",
+        "READ_ONLY_MODE": "{env:ATLASSIAN_READ_ONLY}",
+        "ENABLED_TOOLS": "{env:ATLASSIAN_ENABLED_TOOLS}"
+      },
       "enabled": true
     },
     "context7": { "type": "local", "command": ["npx", "-y", "@upstash/context7-mcp@latest"], "enabled": true },

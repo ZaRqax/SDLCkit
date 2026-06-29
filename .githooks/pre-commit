@@ -27,11 +27,11 @@ if git diff --cached -U0 | grep -E '^\+' | grep -Eq 'domain\.[A-Z][A-Za-z0-9]*\{
   fi
 fi
 
-# 4. No Russian (Cyrillic) inside Go code.
-if staged | grep -E '\.go$' >/dev/null 2>&1; then
+# 4. No Russian (Cyrillic) inside Go code. (python3, not `grep -P` — PCRE grep is absent on macOS/BSD.)
+if command -v python3 >/dev/null 2>&1 && staged | grep -E '\.go$' >/dev/null 2>&1; then
   while IFS= read -r f; do
     [ -f "$f" ] || continue
-    if grep -lP '[\x{0400}-\x{04FF}]' "$f" >/dev/null 2>&1; then
+    if python3 -c "import re,sys; sys.exit(0 if re.search(r'[Ѐ-ӿ]', open(sys.argv[1],encoding='utf-8',errors='ignore').read()) else 1)" "$f"; then
       fail "Cyrillic found in $f — code, comments, logs and errors must be English."
     fi
   done < <(staged | grep -E '\.go$')

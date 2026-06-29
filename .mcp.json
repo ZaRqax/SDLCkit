@@ -16,21 +16,8 @@
       }
     },
     "atlassian": {
-      "command": "docker",
-      "args": [
-        "run", "-i", "--rm",
-        "-e", "JIRA_URL",
-        "-e", "JIRA_USERNAME",
-        "-e", "JIRA_API_TOKEN",
-        "-e", "CONFLUENCE_URL",
-        "-e", "CONFLUENCE_USERNAME",
-        "-e", "CONFLUENCE_API_TOKEN",
-        "-e", "JIRA_PROJECTS_FILTER",
-        "-e", "CONFLUENCE_SPACES_FILTER",
-        "-e", "READ_ONLY_MODE",
-        "-e", "ENABLED_TOOLS",
-        "ghcr.io/sooperset/mcp-atlassian:latest"
-      ],
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
       "env": {
         "JIRA_URL": "${JIRA_URL:-https://your-org.atlassian.net}",
         "JIRA_USERNAME": "${JIRA_USERNAME}",
