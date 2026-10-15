@@ -1,3 +1,5 @@
+> Historical v1 design reference. Current defaults and policy are defined by README.md, AGENTS.md and docs/compatibility.md; language/tracker/model/phase assumptions below are optional legacy context.
+
 # Weak-Model Playbook — why the kit is shaped this way, and how to keep authoring for it
 
 > Maintainer/operator doc. Read this before adding or editing a skill, command, or agent. The kit

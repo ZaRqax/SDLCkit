@@ -1,0 +1,33 @@
+schema_version: 1
+id: quick-fix
+stages:
+- id: intake
+  role: analyst
+  needs: []
+  when: always
+- id: context
+  role: explorer
+  needs:
+  - intake
+  when: always
+- id: execute
+  role: implementer
+  needs:
+  - context
+  when: always
+- id: verify
+  role: verifier
+  needs:
+  - execute
+  when: always
+- id: deliver
+  role: delivery
+  needs:
+  - verify
+  when: always
+quality:
+  required:
+  - changed_area_tests
+gates:
+  external_write: approval_required
+  destructive: forbidden

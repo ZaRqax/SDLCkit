@@ -1,0 +1,36 @@
+{
+  "adapter_version": 1,
+  "capabilities": {
+    "MCP": "supported",
+    "edit": "supported",
+    "human_approval": "supported",
+    "parallel_workers": "fallback",
+    "read": "supported",
+    "session_resume": "fallback",
+    "shell": "supported",
+    "structured_output": "fallback",
+    "subagents": "supported"
+  },
+  "formats": [
+    "CLAUDE.md",
+    ".claude/settings.json",
+    ".claude/agents/sdlc-*.md"
+  ],
+  "harness": "claude",
+  "integration_default": "disabled",
+  "limits": [
+    "Version probe does not execute an authenticated model task.",
+    "Native policy is provider-specific; prompts are not a sandbox.",
+    "Write workers must use separate coordinator worktrees, including same-provider subagents.",
+    "Existing provider/global settings may affect discovery and permissions."
+  ],
+  "model": "inherit",
+  "native_contract": "project-scoped",
+  "official_sources": [
+    "https://code.claude.com/docs/en/sub-agents",
+    "https://code.claude.com/docs/en/settings"
+  ],
+  "probed_version": "2.1.201",
+  "reviewed_at": "2026-10-15",
+  "snapshots": "snapshot.json"
+}

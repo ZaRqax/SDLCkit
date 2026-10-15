@@ -31,17 +31,17 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "agents")
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 try:
     import pipeline_config
+    from role_library import claude_source
 
     DISABLED = set(pipeline_config.disabled_agents())
-except Exception:  # noqa: BLE001 — any import/parse failure must not break porting
+except ImportError:  # Legacy fallback only when the optional shared bridge is unavailable
     DISABLED = set()
 
 TOOL_MAP = {
     "Read": "read", "Write": "write", "Edit": "edit", "Bash": "bash",
     "Grep": "grep", "Glob": "find", "mcp__atlassian": "mcp:atlassian",
 }
-MODEL_MAP = {"opus": "selfhosted/GLM-5.1", "sonnet": "selfhosted/Qwen3-Coder-Next",
-             "haiku": "selfhosted/Qwen3-Coder-Next"}
+MODEL_MAP = {}  # Model selection belongs to the active harness/profile.
 
 
 def split_frontmatter(text):
@@ -109,8 +109,7 @@ def wrap(text, width=96, indent="  "):
 
 def port(path):
     name = os.path.splitext(os.path.basename(path))[0]
-    with open(path, encoding="utf-8") as f:
-        fm_raw, body = split_frontmatter(f.read())
+    fm_raw, body = split_frontmatter(claude_source(path))
     if fm_raw is None:
         return None
     fm = parse_fm(fm_raw)
@@ -146,7 +145,10 @@ def main():
             continue
         if os.path.splitext(fn)[0] in DISABLED:  # pipeline toggle: agent off
             skipped += 1
-            print(f"  skipped {fn} (disabled in config/pipeline.yaml)")
+            stale = os.path.join(OUT, fn)
+            if os.path.isfile(stale):
+                os.unlink(stale)  # OUT is the legacy generated snapshot directory.
+            print(f"  skipped {fn} (disabled in role selection)")
             continue
         res = port(os.path.join(SRC, fn))
         if not res:

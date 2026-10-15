@@ -1,11 +1,9 @@
-# Specs index
+# Work and run index
 
-Status rollup across features. One row per `specs/<TASK_ID>-<slug>/`. Update the row when a phase
-completes (or regenerate with `scripts/check-kit.sh --index` if the optional tooling is enabled).
+Work IDs are internal stable identifiers; an external issue key is optional provenance.
 
-| Task | Title | Phase | Status | Spec | Plan | Tasks | PR |
-|---|---|---|---|---|---|---|---|
-| _example_ PROJ-0000 | _Sample feature_ | tasks | APPROVED | ✅ | ✅ | ✅ | — |
+| Work ID | Title / sources | Projects | Workflow | State | Deliverable / result | Updated at |
+|---|---|---|---|---|---|---|
+| work-20261015 | Frontier-agent migration; supplied local plan | SDLCkit | feature / full roadmap | DONE | Local migration commit on feature/work-20261015-frontier-migration | 2026-10-15 |
 
-**Phases:** spec → clarify → plan → tasks → implement → test → review → pr
-**Status values:** DRAFT · CLARIFIED · APPROVED · IN_PROGRESS · TESTING · IN_REVIEW · DONE · BLOCKED
+Keep human-readable specs/handoffs beside durable `.sdlc/runs/` state when using automation. Record failed, blocked and skipped outcomes honestly. Generated state is local by default; commit only reviewed non-secret artifacts.

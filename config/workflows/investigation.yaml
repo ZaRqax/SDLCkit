@@ -1,0 +1,31 @@
+schema_version: 1
+id: investigation
+stages:
+- id: intake
+  role: analyst
+  needs: []
+  when: always
+- id: context
+  role: explorer
+  needs:
+  - intake
+  when: always
+- id: analysis
+  role: analyst
+  needs:
+  - context
+  when: always
+- id: deliver
+  role: delivery
+  needs:
+  - analysis
+  when: always
+quality:
+  required: []
+gates:
+  external_write: approval_required
+  destructive: forbidden
+allowed_effects:
+- read
+- report
+- local_write

@@ -1,0 +1,43 @@
+schema_version: 1
+id: feature
+stages:
+- id: intake
+  role: analyst
+  needs: []
+  when: always
+- id: context
+  role: explorer
+  needs:
+  - intake
+  when: always
+- id: design
+  role: architect
+  needs:
+  - context
+  when: always
+- id: execute
+  role: implementer
+  needs:
+  - design
+  when: always
+- id: verify
+  role: verifier
+  needs:
+  - execute
+  when: always
+- id: review
+  role: reviewer
+  needs:
+  - verify
+  when: always
+- id: deliver
+  role: delivery
+  needs:
+  - review
+  when: always
+quality:
+  required:
+  - changed_area_tests
+gates:
+  external_write: approval_required
+  destructive: forbidden

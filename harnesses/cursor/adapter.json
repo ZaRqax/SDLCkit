@@ -1,0 +1,35 @@
+{
+  "adapter_version": 1,
+  "capabilities": {
+    "MCP": "supported",
+    "edit": "supported",
+    "human_approval": "supported",
+    "parallel_workers": "fallback",
+    "read": "supported",
+    "session_resume": "fallback",
+    "shell": "supported",
+    "structured_output": "fallback",
+    "subagents": "fallback"
+  },
+  "formats": [
+    ".cursor/rules/sdlc-*.mdc",
+    ".cursor/cli.json"
+  ],
+  "harness": "cursor",
+  "integration_default": "disabled",
+  "limits": [
+    "Version probe does not execute an authenticated model task.",
+    "Native policy is provider-specific; prompts are not a sandbox.",
+    "Write workers must use separate coordinator worktrees, including same-provider subagents.",
+    "Cursor role rules are a sequential fallback, not isolated subagents."
+  ],
+  "model": "inherit",
+  "native_contract": "project-scoped",
+  "official_sources": [
+    "https://prod.cursor.com/docs/rules",
+    "https://prod.cursor.com/docs/cli/reference/permissions"
+  ],
+  "probed_version": null,
+  "reviewed_at": "2026-10-15",
+  "snapshots": "snapshot.json"
+}

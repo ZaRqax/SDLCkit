@@ -4,7 +4,7 @@ description: >
   Use for a task too big for one pass — a huge context or a broad sweep (audit all services for X,
   understand a 50-file subsystem, answer a question over a massive log/spec, summarize a giant diff).
   Recursively decompose → delegate each independent piece to a fresh solver → aggregate, with hard
-  depth/fanout/budget rails. Invoke with /rlm or the rlm subagent. Read-only by default.
+  depth/fanout/budget rails. Invoke with /rlm or the rlm subagent. Read-only.
 ---
 
 # rlm-recursive — Recursive Language Model solver for the kit
@@ -17,8 +17,8 @@ of itself**, and aggregates — handling inputs far beyond a single context wind
 
 **Use it for** read/analysis/decomposition at scale: cross-service audits, large-context Q&A,
 understanding/summarizing a big subsystem or diff, fan-out research. **Do NOT use it** to make
-parallel code edits — recursive uncoordinated writes corrupt state; that is what the spec→…→pr
-pipeline (and worktrees) are for. RLM here is **read-only by default**.
+parallel code edits — recursive uncoordinated writes corrupt state; that is what the isolated coordinator
+and worktrees are for. RLM here is **read-only**.
 
 ## The protocol (every node runs this)
 
@@ -44,7 +44,7 @@ ticket, or large blob — **kept as a reference, never pasted wholesale** (that 
 - **Budget**: stop decomposing and solve directly once the token/node budget runs low.
 - **Base case first**: never recurse on something a single focused pass can answer — that is pure waste.
 - **Independence**: only split into pieces that don't depend on each other's output.
-- **Read-only by default**: nodes read/grep/analyze. Code edits inside recursion require explicit
+- **Read-only**: nodes read/grep/analyze. Code edits inside recursion require explicit
   human authorization and a different tool (the engineer + worktrees), not rlm.
 
 ## How recursion actually runs, per harness (no hand-waving)
@@ -61,8 +61,8 @@ ticket, or large blob — **kept as a reference, never pasted wholesale** (that 
 
 ## Worked example
 
-Task: *"Audit all ~15 Acme services for direct repository access from transport (clean-arch
-violation, AGENTS.md §3)."* One pass can't hold 15 repos.
+Task: *"Audit all selected Go-profile services for direct repository access from transport (clean-arch
+violation, selected project architecture)."* One pass can't hold 15 repos.
 
 - **Depth 2, root:** can't fit it → DECOMPOSE by service into ≤5 groups (catalog+marketplace+users,
   search+indexer+importer, …). Fanout 5; each group is independent. DELEGATE each group at depth 1.

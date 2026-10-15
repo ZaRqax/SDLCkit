@@ -1,0 +1,20 @@
+schema_version: 2
+id: go
+description: Optional generic Go checks; discovered project commands take precedence
+commands:
+  lint:
+  - go vet ./...
+  test:
+  - go test -race ./...
+generated_paths:
+- '**/*.pb.go'
+- '**/*_gen.go'
+roles:
+- go-reviewer
+skills:
+- go-grpc-handler
+- sqlc-migration
+- testify-suite
+- serena-first
+rules:
+- go-layers.md

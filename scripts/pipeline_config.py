@@ -1,32 +1,10 @@
 #!/usr/bin/env python3
-"""Read config/pipeline.yaml — the kit's single source of truth for which agents are active.
+"""Legacy roster queries backed by strict YAML/JSON and neutral role toggles.
 
-The kit's only Python dependency is the stdlib, so this is a TINY tolerant parser for the fixed shape
-of config/pipeline.yaml (see the header in that file), NOT a general YAML parser. It is imported by
-both porters (agents-config/{pi,opencode}) and shelled out to by check-kit.sh / apply-pipeline.sh, so
-the toggle is honored identically everywhere from one place.
-
-If the config is missing or unreadable, every helper degrades to "all agents enabled" so the kit keeps
-working — a deleted config never silently drops agents.
-
-Library use:
-    import pipeline_config as pc
-    pc.load()                  # {name: {role, phases, commands, enabled, note}}
-    pc.is_enabled("rlm")       # bool (True if unknown — fail open)
-    pc.enabled_agents()        # sorted [name, ...]
-    pc.disabled_agents()       # sorted [name, ...]
-    pc.command_agent()         # {command: owning-agent}
-    pc.disabled_commands()     # sorted [command, ...] whose ONLY owning agent is disabled
-
-CLI (one value per line unless noted):
-    python3 scripts/pipeline_config.py names              # every agent name in the roster
-    python3 scripts/pipeline_config.py enabled            # enabled agent names
-    python3 scripts/pipeline_config.py disabled           # disabled agent names
-    python3 scripts/pipeline_config.py disabled-commands  # commands to skip (owner disabled)
-    python3 scripts/pipeline_config.py expected-count      # number of enabled agents (single int)
-    python3 scripts/pipeline_config.py disabled-core       # enabled=false agents whose role=core-phase
-    python3 scripts/pipeline_config.py check               # validate; exit 1 on a structural error
-    python3 scripts/pipeline_config.py json                # the whole parsed roster as JSON
+CLI contracts remain: names, enabled, disabled, disabled-commands, expected-count,
+disabled-core, check, json. Missing legacy files retain historical fail-open
+behavior; malformed files fail explicitly. New enablement filters generated
+adapters and never renames canonical source files.
 """
 import json
 import os
@@ -37,55 +15,34 @@ ROOT = os.path.normpath(os.path.join(HERE, ".."))
 CONFIG = os.environ.get("SDLC_PIPELINE_CONFIG", os.path.join(ROOT, "config", "pipeline.yaml"))
 
 
-def _scalar(val):
-    """Parse a YAML-subset scalar: bool, inline [list], quoted/bare string."""
-    val = val.strip()
-    if val in ("true", "True"):
-        return True
-    if val in ("false", "False"):
-        return False
-    if val.startswith("[") and val.endswith("]"):
-        inner = val[1:-1].strip()
-        if not inner:
-            return []
-        out = []
-        for item in inner.split(","):
-            item = item.strip().strip("'\"")
-            if item:
-                out.append(int(item) if item.lstrip("-").isdigit() else item)
-        return out
-    if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-        return val[1:-1]
-    return val
-
-
 def load(path=None):
-    """Return {agent_name: {attrs}}. Empty dict if the config is absent/unreadable (fail open)."""
-    path = path or CONFIG
-    agents, in_agents, cur = {}, False, None
-    try:
-        with open(path, encoding="utf-8") as fh:
-            lines = fh.read().splitlines()
-    except OSError:
+    """Read a strict legacy roster or schema-v1 neutral role configuration.
+
+    The historical helpers and CLI remain stable. Missing legacy config returns
+    an empty roster; malformed/unsupported YAML is an explicit validation error.
+    New role toggles filter generated outputs and never park canonical sources.
+    """
+    from pathlib import Path
+    sys.path.insert(0, ROOT)
+    from sdlc.config import read_document
+    selected = Path(path or CONFIG)
+    if not selected.exists():
         return {}
-    for raw in lines:
-        line = raw.rstrip()
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        if not line.startswith(" "):  # a top-level key like `agents:`
-            in_agents = stripped.rstrip(":") == "agents"
-            cur = None
-            continue
-        if not in_agents:
-            continue
-        indent = len(line) - len(line.lstrip(" "))
-        if indent == 2 and stripped.endswith(":"):  # an agent name
-            cur = stripped[:-1].strip()
-            agents[cur] = {}
-        elif indent >= 4 and cur is not None and ":" in stripped:
-            key, _, val = stripped.partition(":")
-            agents[cur][key.strip()] = _scalar(val)
+    document = read_document(selected)
+    if 'agents' in document:
+        agents = document['agents']
+    elif document.get('schema_version') == 1 and isinstance(document.get('roles'), dict):
+        agents = {name: dict(values, role='specialist', commands=[], phases=[])
+                  for name, values in document['roles'].items()}
+    else:
+        raise ValueError(f'unsupported pipeline configuration: {selected}')
+    if not isinstance(agents, dict):
+        raise ValueError('pipeline agents must be a mapping')
+    for name, values in agents.items():
+        if not isinstance(values, dict) or not isinstance(values.get('enabled'), bool):
+            raise ValueError(f'{name}: enabled must be true or false')
+    # The legacy roster stays authoritative for legacy outputs; native rendering
+    # uses effective neutral roles independently. No canonical source is parked.
     return agents
 
 
@@ -184,4 +141,8 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    try:
+        sys.exit(main(sys.argv))
+    except (ValueError, OSError) as exc:
+        print(f'pipeline configuration error: {exc}', file=sys.stderr)
+        sys.exit(1)

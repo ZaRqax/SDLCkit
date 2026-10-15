@@ -1,0 +1,48 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "providers": {
+    "selfhosted": {
+      "type": "openai-compat",
+      "base_url": "http://localhost:8000/v1",
+      "api_key": "$OPENAI_API_KEY",
+      "models": [
+        { "id": "Qwen3-Coder-Next", "name": "Qwen3-Coder-Next", "context_window": 262144, "default_max_tokens": 65536 },
+        { "id": "GLM-5.1", "name": "GLM-5.1", "context_window": 200000, "default_max_tokens": 65536 }
+      ]
+    }
+  },
+  "mcp": {
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from", "git+https://github.com/oraios/serena",
+        "serena", "start-mcp-server",
+        "--context", "agent", "--project-from-cwd",
+        "--mode", "planning", "--mode", "editing"
+      ],
+      "env": { "GOPRIVATE": "github.com/acme", "GITHUB_TOKEN": "$GITHUB_PAT" }
+    },
+    "atlassian": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "$JIRA_URL",
+        "JIRA_USERNAME": "$JIRA_USERNAME",
+        "JIRA_API_TOKEN": "$JIRA_API_TOKEN",
+        "CONFLUENCE_URL": "$CONFLUENCE_URL",
+        "CONFLUENCE_USERNAME": "$CONFLUENCE_USERNAME",
+        "CONFLUENCE_API_TOKEN": "$CONFLUENCE_API_TOKEN",
+        "JIRA_PROJECTS_FILTER": "$JIRA_PROJECTS_FILTER",
+        "CONFLUENCE_SPACES_FILTER": "$CONFLUENCE_SPACES_FILTER",
+        "READ_ONLY_MODE": "$ATLASSIAN_READ_ONLY",
+        "ENABLED_TOOLS": "$ATLASSIAN_ENABLED_TOOLS"
+      }
+    },
+    "context7": { "type": "stdio", "command": "npx", "args": ["-y", "@upstash/context7-mcp@latest"] },
+    "sequential-thinking": { "type": "stdio", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-sequentialthinking"] },
+    "git": { "type": "stdio", "command": "uvx", "args": ["mcp-server-git", "--repository", "$WORKSPACE_ROOT"] },
+    "fetch": { "type": "stdio", "command": "uvx", "args": ["mcp-server-fetch"] }
+  }
+}

@@ -10,8 +10,10 @@
 
 ## Checklist
 
-- [ ] No internal identifiers introduced (placeholders only: `acme`, `PROJ`/`TEAM`, `your-org`)
-- [ ] English-only in shipped files (`docs/readme-ru.md` excepted)
-- [ ] New rules carry one concrete, compilable example
-- [ ] pi subagents regenerated if `.claude/agents/` changed (`port-agents.py`)
-- [ ] `bash scripts/check-kit.sh` passes locally
+- [ ] Acceptance criteria and selected delivery are satisfied
+- [ ] No secrets, private identifiers or unrelated edits introduced
+- [ ] Generated harness assets regenerated from canonical roles/source inputs
+- [ ] Required checks pass with command/exit-code evidence; unavailable checks are stated
+- [ ] `bash scripts/check-kit.sh --test` passes locally
+- [ ] Legacy entry points and user-owned configurations remain compatible
+- [ ] External effects are scoped and explicitly authorized; no automatic merge/deploy

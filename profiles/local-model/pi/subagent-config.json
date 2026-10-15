@@ -1,0 +1,17 @@
+{
+  "asyncByDefault": false,
+  "maxSubagentDepth": 2,
+  "parallel": { "maxTasks": 4, "concurrency": 2 },
+  "defaultSessionDir": ".pi/sessions",
+  "subagents": {
+    "disableBuiltins": false,
+    "agentOverrides": {
+      "planner":        { "model": "selfhosted/GLM-5.1", "thinking": "high" },
+      "tech-designer":  { "model": "selfhosted/GLM-5.1", "thinking": "high" },
+      "go-code-reviewer": { "model": "selfhosted/GLM-5.1", "thinking": "high" },
+      "qa-lead":        { "model": "selfhosted/Qwen3-Coder-Next" },
+      "engineer":       { "model": "selfhosted/Qwen3-Coder-Next" },
+      "devops-lead":    { "model": "selfhosted/Qwen3-Coder-Next" }
+    }
+  }
+}

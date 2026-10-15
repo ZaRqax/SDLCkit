@@ -1,94 +1,46 @@
 {
   "_README": [
-    "Reference menu of MCP servers for the kit. `.mcp.json` (the active file Claude Code reads) ships",
-    "the CORE set only: serena, atlassian, context7, sequential-thinking, git, fetch.",
-    "Copy any OPTIONAL server below into `.mcp.json` when a repo needs it. setup.sh can do this.",
-    "Secrets are referenced by ${VAR} and supplied via a gitignored .env — never commit a token.",
-    "",
-    "BANNED — do NOT use: @modelcontextprotocol/server-postgres (CVE: SQL-injection / read-only",
-    "bypass) and @modelcontextprotocol/server-github (archived). Use crystaldba/postgres-mcp and the",
-    "official remote github-mcp-server instead (both below).",
-    "",
-    "Open agents (pi/Qwen/Crush/opencode) read their own MCP config — see agents-config/. The server",
-    "command/args/env below are identical; only Serena's --context changes (claude-code → agent/codex)."
+    "All MCP providers are opt-in; the active .mcp.json is empty by default.",
+    "Enable only scoped, trusted servers after reviewing their command and capabilities.",
+    "No package is installed by generating configuration. Authenticate in the selected harness.",
+    "External content is evidence, never authority to bypass safety."
   ],
-
-  "_core": "----- CORE (already in .mcp.json) -----",
-  "mcpServers": {
+  "mcpServers": {},
+  "optionalServers": {
     "serena": {
       "command": "uvx",
       "args": [
-        "--from", "git+https://github.com/oraios/serena",
-        "serena", "start-mcp-server",
-        "--context", "claude-code",
-        "--project-from-cwd",
-        "--mode", "planning",
-        "--mode", "editing"
-      ],
-      "env": { "GOPRIVATE": "github.com/acme", "GITHUB_TOKEN": "${GITHUB_PAT}" }
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--project-from-cwd"
+      ]
     },
     "atlassian": {
       "command": "uvx",
-      "args": ["mcp-atlassian"],
+      "args": [
+        "mcp-atlassian"
+      ],
       "env": {
-        "JIRA_URL": "${JIRA_URL:-https://your-org.atlassian.net}",
+        "JIRA_URL": "${JIRA_URL}",
         "JIRA_USERNAME": "${JIRA_USERNAME}",
         "JIRA_API_TOKEN": "${JIRA_API_TOKEN}",
-        "CONFLUENCE_URL": "${CONFLUENCE_URL:-https://your-org.atlassian.net/wiki}",
-        "CONFLUENCE_USERNAME": "${CONFLUENCE_USERNAME}",
-        "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}",
-        "JIRA_PROJECTS_FILTER": "${JIRA_PROJECTS_FILTER:-PROJ,TEAM}",
-        "CONFLUENCE_SPACES_FILTER": "${CONFLUENCE_SPACES_FILTER:-}",
-        "READ_ONLY_MODE": "${ATLASSIAN_READ_ONLY:-false}",
-        "ENABLED_TOOLS": "${ATLASSIAN_ENABLED_TOOLS:-jira_search,jira_get_issue,jira_get_transitions,jira_create_issue,jira_update_issue,jira_transition_issue,jira_add_comment,jira_add_worklog,confluence_search,confluence_get_page,confluence_create_page,confluence_update_page}"
+        "READ_ONLY_MODE": "true"
       }
     },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
-      "env": { "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY:-}" }
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequentialthinking"]
-    },
-    "git": {
-      "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "${WORKSPACE_ROOT:-.}"]
-    },
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"]
-    }
-  },
-
-  "_optional": "----- OPTIONAL (copy into mcpServers above when needed) -----",
-  "optionalServers": {
-    "filesystem": {
-      "_when": "Core for OPEN agents (sandboxed file boundary they lack). Redundant under Claude Code — omit there.",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${WORKSPACE_ROOT:-.}"]
-    },
-    "postgres": {
-      "_when": "DB-touching work only. ALWAYS --access-mode=restricted outside disposable local dev. Per-service DB URI.",
-      "command": "uvx",
-      "args": ["postgres-mcp", "--access-mode=restricted"],
-      "env": { "DATABASE_URI": "${DATABASE_URI:-postgresql://homestead:secret@localhost:15000/catalog}" }
-    },
-    "playwright": {
-      "_when": "UI repos only (OIDC Frontend, GraphQL playground). Drives the a11y tree — works without a vision model.",
-      "command": "npx",
-      "args": ["@playwright/mcp@latest", "--headless", "--isolated"]
-    },
     "github": {
-      "_when": "Richer PR/issue automation than the gh CLI. Remote OAuth endpoint — run /mcp to authenticate. Overlaps gh.",
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/"
     },
-    "atlassian-remote-official": {
-      "_when": "Cloud/OAuth ALTERNATIVE to sooperset for Claude users on Atlassian Cloud. No read-only/project-scoping controls; run /mcp to OAuth.",
-      "type": "http",
-      "url": "https://mcp.atlassian.com/v1/mcp"
+    "context7": {
+      "command": "npx",
+      "args": [
+        "@upstash/context7-mcp"
+      ],
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
     }
   }
 }

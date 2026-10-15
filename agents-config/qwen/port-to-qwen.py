@@ -47,7 +47,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
 SRC_AGENTS = os.path.join(ROOT, ".claude", "agents")
 SRC_COMMANDS = os.path.join(ROOT, ".claude", "commands")
-SRC_SKILLS = os.path.join(ROOT, ".claude", "skills")
+SRC_SKILLS = os.path.join(ROOT, "skills")
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, ".qwen")
 
 # Honor the pipeline toggle (config/pipeline.yaml): never generate a disabled agent, nor a command
@@ -55,25 +55,18 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, ".qwen")
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 try:
     import pipeline_config
+    from role_library import claude_source
 
     DISABLED_AGENTS = set(pipeline_config.disabled_agents())
     DISABLED_COMMANDS = set(pipeline_config.disabled_commands())
-except Exception:  # noqa: BLE001 — any import/parse failure must not break porting
+except ImportError:  # Legacy fallback only when the optional shared bridge is unavailable
     DISABLED_AGENTS, DISABLED_COMMANDS = set(), set()
 
 # Per-role model selection (review §6.3). Qwen SELECTORS only — never a hardcoded model id:
 #   inherit -> the session's main (strong) model;  fast -> the configured fastModel.
 # Judgment-heavy roles keep the strong model; mechanical / high-fanout roles use the fast model.
 # An agent not listed here defaults to `inherit`.
-MODEL_BY_AGENT = {
-    "planner": "inherit",          # spec + clarify — judgment
-    "tech-designer": "inherit",    # plan + tasks — judgment
-    "go-code-reviewer": "inherit", # review — judgment
-    "devops-lead": "inherit",      # infra decisions — judgment
-    "engineer": "fast",            # implementation — mechanical, high volume
-    "qa-lead": "fast",             # test authoring + debug loop — high volume
-    "rlm": "fast",                 # high-fanout recursive utility — cost-sensitive
-}
+MODEL_BY_AGENT = {}  # Inherit by default; no implicit cost/model downgrade.
 
 
 def split_frontmatter(text):
@@ -132,8 +125,7 @@ def is_readonly(raw_tools):
 
 def port_agent(path):
     name = os.path.splitext(os.path.basename(path))[0]
-    with open(path, encoding="utf-8") as f:
-        fm_raw, body = split_frontmatter(f.read())
+    fm_raw, body = split_frontmatter(claude_source(path))
     if fm_raw is None:
         return None
     fm = parse_fm(fm_raw)
@@ -184,7 +176,10 @@ def emit_md(src_dir, out_dir, porter, skip_names=frozenset()):
     for fn in sorted(os.listdir(src_dir)):
         if not fn.endswith(".md"):
             continue
-        if os.path.splitext(fn)[0] in skip_names:  # pipeline toggle: agent/command off
+        if os.path.splitext(fn)[0] in skip_names:
+            stale = os.path.join(out_dir, fn)
+            if os.path.isfile(stale):
+                os.unlink(stale)  # Legacy output directories contain generated files only.
             continue
         res = porter(os.path.join(src_dir, fn))
         if not res:

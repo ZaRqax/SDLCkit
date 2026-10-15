@@ -5,6 +5,8 @@ description: >
   detector. Invoke with /testify-suite for the full reference.
 ---
 
+> Optional Go profile capability. Apply only when the target repository uses this stack/toolchain; nearest project instructions and effective policy determine commands, architecture and authorization. This runbook is not a default dependency of generic workflows.
+
 # testify-suite — table-driven testify suites for service-layer Go
 
 Standalone runbook. You are writing unit tests for a Acme service. Tests live next to the

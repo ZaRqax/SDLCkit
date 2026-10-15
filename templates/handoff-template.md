@@ -1,40 +1,23 @@
-<!-- The kit's canonical per-feature state file. Lives at specs/<TASK_ID>-<slug>/handoff.md,
-     committed alongside the spec trio. EVERY agent updates it as its last step: flip the checklist,
-     append to the Log, set Status + Next agent. It is the legible source of truth a weaker model can
-     read to know exactly where the work stands. (An optional JSON mirror — handoff/<TASK_ID>.json,
-     schema in handoff/schema.json — is only for the optional automation/graph layer; ignore it
-     unless you've enabled that.) -->
+# Handoff — <Work ID>
 
-# Handoff: <TASK_ID> — <short title>
+- State: <queued | running | blocked | failed | completed | cancelled>
+- Stage: <selected recipe stage>
+- Workflow: <recipe>
+- Projects / worktrees: <IDs, paths, owners and input revisions>
+- Next action / owner: <concrete action>
+- Updated at: <UTC timestamp>
+- Requested delivery / result: <target and artifact or URL>
 
-- **Status:** DRAFT            <!-- DRAFT·CLARIFIED·APPROVED·IN_PROGRESS·TESTING·IN_REVIEW·DONE·BLOCKED -->
-- **Phase:** spec              <!-- spec·clarify·plan·tasks·implement·test·review·pr -->
-- **Branch:** —               <!-- <type>/<TASK_ID>-<slug> -->
-- **Jira:** <TASK_ID>
-- **Next agent:** planner
+## Progress and evidence
 
-## Pipeline checklist
-- [ ] Spec written (planner)
-- [ ] Clarified — no open questions (planner)
-- [ ] Plan written (tech-designer)
-- [ ] Tasks approved by human (tech-designer)
-- [ ] Implemented (engineer)
-- [ ] Test plan + tests green (qa-lead)
-- [ ] Reviewed — no blockers (go-code-reviewer)
-- [ ] PR opened (engineer)
+| Task / stage | State | Evidence / exit code | Next dependency |
+|---|---|---|---|
+| <id> | <pending/running/passed/failed/skipped/unavailable> | <path> | <id> |
 
-## Quality gates
-| Gate | Status |
-|---|---|
-| lint | pending |
-| test | pending |
+## Decisions, authorization and blockers
 
-## Decisions
-<!-- append: - <decision> (confidence 0.0–1.0, reversibility easy/medium/hard) -->
+<Scope, approvals, outstanding questions, unavailable checks and retry/reconciliation notes. Never include credentials.>
 
-## Blockers
-<!-- append: - [category] <detail>  — categories: type-error, missing-auth, test-failure,
-     contract-mismatch, infra-error, needs-clarification, scope-expansion -->
+## Log
 
-## Log (append-only — newest last)
-- _<phase>_ <agent>: <what changed / files touched / notes for the next agent>
+- <UTC> <stage/owner>: <observed change, evidence and next action>

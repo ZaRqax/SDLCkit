@@ -1,0 +1,27 @@
+schema_version: 1
+roles:
+  coordinator:
+    enabled: true
+  analyst:
+    enabled: true
+  explorer:
+    enabled: true
+  architect:
+    enabled: true
+  implementer:
+    enabled: true
+  verifier:
+    enabled: true
+  reviewer:
+    enabled: true
+  delivery:
+    enabled: true
+  go-reviewer:
+    enabled: false
+    profile: go
+  devops-reviewer:
+    enabled: false
+    profile: optional
+  rlm:
+    enabled: false
+    profile: optional

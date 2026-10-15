@@ -1,27 +1,20 @@
-<!-- Phase 8 artifact. Use as the PR description body. Title: [WIP] [<TASK_ID>] <PR title>
-     (drop [WIP] or open as a draft while unfinished). -->
+## Problem and resulting behavior
 
-## [<TASK_ID>] <PR title>
+<Concrete problem, requested behavior and resulting change. Work ID / upstream references are optional.>
 
-### What & why
-<1–3 sentences. Link the Jira issue and the spec: specs/<TASK_ID>-<slug>/spec.md.>
+## Ordered changes
 
-### Changes (ordered)
-1. ...
-2. ...
-3. ...
+1. <Change and why it is needed>
 
-### How to verify
-<Commands / grpcurl calls / steps a reviewer runs locally.>
+## Validation
 
-### Pre-review checklist
-- [ ] `task fmt` applied, `task lint` clean, `task test` green (race on).
-- [ ] Clean architecture respected (transport → service → repository).
-- [ ] No partial domain structs; no hand-edited generated code.
-- [ ] No Russian in code; logging at the right level (warn/error only when actionable).
-- [ ] Each acceptance criterion is covered by a test.
-- [ ] Commit messages follow `<type>(<TASK_ID>): <desc>`.
-- [ ] Branch off `develop`; not pushing to a protected branch.
+<Actual commands, exit codes, acceptance coverage and limitations. Do not mark omitted checks passed.>
 
-### Extras
-<Migrations to run, feature flags to flip, follow-up tickets, screenshots.>
+## Review checklist
+
+- [ ] Requested scope complete; no stubs or elisions.
+- [ ] Project conventions and generated-code rules followed.
+- [ ] Verification evidence recorded and blockers resolved.
+- [ ] Publication authorized for this repository and branch.
+
+<No automatic issue transitions, merge or deployment are implied by this PR/MR.>
