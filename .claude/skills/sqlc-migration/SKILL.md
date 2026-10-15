@@ -6,6 +6,8 @@ description: >
   /sqlc-migration for the full runbook.
 ---
 
+> Optional Go profile capability. Apply only when the target repository uses this stack/toolchain; nearest project instructions and effective policy determine commands, architecture and authorization. This runbook is not a default dependency of generic workflows.
+
 # sqlc-migration
 
 Add or change a Postgres table/query the safe way: migration → query SQL → regenerate → wire through

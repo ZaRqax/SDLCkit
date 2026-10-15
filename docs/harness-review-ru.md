@@ -1,3 +1,5 @@
+> Historical v1 design reference. Current defaults and policy are defined by README.md, AGENTS.md and docs/compatibility.md; language/tracker/model/phase assumptions below are optional legacy context.
+
 # Ревью харнесса Open-Model SDLC Kit
 
 > **Внутренний обзор, не публичный файл кита.** Написан по-русски и ссылается на конкретную

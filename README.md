@@ -1,226 +1,60 @@
-<div align="center">
+# SDLCkit 2.0
 
-# 🛠️ Open-Model SDLC Kit
+**A configurable SDLC workspace for Codex, Claude Code, OpenCode and Cursor.** Bring an existing repository, a requirement from chat/file/issue, and the output you want. The kit discovers conventions, chooses an appropriate workflow, verifies changes and delivers a report, patch, local commit/branch, GitHub PR or GitLab MR.
 
-**A spec-driven SDLC harness that makes a _lightweight open model_ write high-quality, convention-following Go — and runs unchanged under Claude Code.**
+The kit can remain in `~/tools/SDLCkit` while projects stay anywhere in your approved workspace. It supports Python, TypeScript, Go and other repositories through their existing tools. Jira, Confluence, GitHub, GitLab, Serena, MCP servers and model endpoints are optional. Smaller/local models and legacy pi/Qwen/Crush/omp entrypoints remain available.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Built for open models](https://img.shields.io/badge/built%20for-open%20models-8A2BE2)
-![Works with Claude Code](https://img.shields.io/badge/works%20with-Claude%20Code-D97757)
-![Agents](https://img.shields.io/badge/agents-pi%20·%20Qwen%20·%20Crush%20·%20opencode%20·%20omp-1f6feb)
-![Stack](https://img.shields.io/badge/stack-Go%20microservices-00ADD8?logo=go&logoColor=white)
-![MCP](https://img.shields.io/badge/MCP-Serena%20·%20Jira%20·%20context7-111)
+## Start with an existing workspace
 
-</div>
-
----
-
-> **One canonical instruction file. A gated phase pipeline. The right MCP tools.**
-> Drop the kit into a Go microservices workspace and any agent — pi, Qwen Code, Crush, opencode, omp, or
-> Claude Code — drives a ticket from **spec → clarify → plan → tasks → implement → test → review → pr**,
-> producing a reviewable artifact at every gate.
-
-Weak open models (GLM-5.1, Qwen3-Coder-Next, pi.dev-style) don't fail for lack of raw ability — they
-fail at **instruction-following, planning, API hallucination, partial edits, and stopping too early**.
-This kit attacks each of those directly: explicit structure, stronger tools, and hard gates the model
-can't skip. The exact same files give Claude Code a phased, convention-aware workflow with zero extra
-config.
-
-<details>
-<summary><b>📑 Table of contents</b></summary>
-
-- [Why this exists](#-why-this-exists)
-- [The two ideas that make it work](#-the-two-ideas-that-make-it-work)
-- [The pipeline](#-the-pipeline)
-- [Supported agents](#-supported-agents)
-- [The tools (MCP) that lift a weak model](#-the-tools-mcp-that-lift-a-weak-model)
-- [Quickstart](#-quickstart)
-- [What's in the box](#-whats-in-the-box)
-- [Customize for your project](#-customize-for-your-project)
-- [Prerequisites](#-prerequisites)
-- [Documentation](#-documentation)
-- [License](#-license)
-
-</details>
-
-## 💡 Why this exists
-
-| Failure mode of a weak coding model | What the kit does about it |
-|---|---|
-| Shallow planning, jumps straight to code | **Mandatory, announced phases** with human gates before any code |
-| Hallucinated APIs / fields / proto messages | **Serena** (symbol-level reads) + **context7** (live docs) + a *verify-before-claim* rule |
-| Partial edits, `// ...` elisions, zero-value structs | **No-partial-struct** + **anti-elision** rules, enforced by hooks and CI |
-| Says "done" while lint/tests are red | An explicit **Definition of Done** gate: real `task lint` / `task test` must pass |
-| Drifts from team conventions | One **show-don't-tell** instruction file: every rule carries a real, compilable example |
-
-Full design rationale: **[docs/weak-model-playbook.md](docs/weak-model-playbook.md)**.
-
-## 🧩 The two ideas that make it work
-
-**1. One source, many harnesses.** Every durable rule lives once in [`AGENTS.md`](AGENTS.md). pi, Qwen
-Code, Crush, opencode, and omp read it natively; Claude Code reads it through a one-line `@AGENTS.md` shim in
-[`CLAUDE.md`](CLAUDE.md). Per-service detail goes in a nested `AGENTS.md` (nearest file wins) — never
-forked. Edit once, every agent gets it.
-
-**2. A gated phase pipeline.** Work flows through eight phases; each writes a reviewable artifact into
-`specs/<TASK_ID>-<slug>/`, the model must announce its phase, and three human gates keep it on the rails.
-
-## 🔄 The pipeline
-
-```mermaid
-flowchart LR
-    T([🎫 ticket]) --> S[1 · spec] --> C[2 · clarify] --> P[3 · plan] --> K[4 · tasks]
-    K --> I[5 · implement] --> TE[6 · test] --> RV[7 · review] --> PR[8 · pr]
-    classDef gate fill:#fff3cd,stroke:#d39e00,color:#5c4400,font-weight:bold;
-    class C,K,RV,PR gate;
-```
-
-<sub>🟡 amber = a hard gate. **clarify** → human answers open questions · **tasks** → human approves the
-list before any code · **review** → every blocker fixed · **pr** → human reviews & merges (never
-self-merge).</sub>
-
-| Phase | Command | Specialist agent | Artifact |
-|---|---|---|---|
-| 1 spec | `/spec` | planner | `spec.md` |
-| 2 clarify | `/clarify` | planner | open questions resolved in `spec.md` |
-| 3 plan | `/plan` | tech-designer | `plan.md` |
-| 4 tasks | `/tasks` | tech-designer | `tasks.md` (`[P]`-parallel, AC-traceable) |
-| 5 implement | `/implement` | engineer (+ devops-lead) | code, one task at a time |
-| 6 test | `/test` | qa-lead | `test-plan.md` + green lint/test |
-| 7 review | `/review` | go-code-reviewer | findings; spec↔plan↔tasks↔code cross-check |
-| 8 pr | `/pr` | engineer | `[WIP] [TASK_ID]` PR |
-
-Every phase also updates a legible, committed `handoff.md` so the next phase — or a fresh session —
-knows exactly where the work stands. Details: **[FLOW.md](FLOW.md)**.
-
-## 🤖 Supported agents
-
-| Agent | Role | How it runs the pipeline |
-|---|---|---|
-| **Claude Code** | first-class | Reads `.claude/` subagents, commands, skills, hooks + `.mcp.json`. Zero extra config. |
-| **pi** (pi.dev) | **primary open agent** | `setup.sh pi` wires MCP (`pi-mcp-adapter`), the pipeline subagents (`/run`, `/chain`; the active set follows `config/pipeline.yaml`), read-only plan mode, and background jobs — near Claude-Code parity. |
-| **opencode** | secondary (near-parity) | `setup.sh opencode` wires MCP (`opencode.json`) and **generates** all subagents (`.opencode/agent/`) + commands (`.opencode/command/`) from the same `.claude/` source — like pi. |
-| **omp** (oh-my-pi) | secondary (native) | A batteries-included **Pi fork** that reads `.claude/{agents,commands,skills,rules}` + `AGENTS.md` + `.mcp.json` **natively** — `setup.sh omp` just installs the binary; nothing to generate. |
-| **Qwen Code** | secondary (first-class) | `setup.sh qwen` wires MCP + permissions + guard hooks and **generates** subagents/commands/skills (`.qwen/`); reads `AGENTS.md`. |
-| **Crush** | secondary | Reads `AGENTS.md` + `crush.json` MCP config; commands double as plain runbooks. |
-
-Different models can map to different roles (e.g. a stronger model for planning/review, a faster one for
-implementation) — see `agents-config/pi/subagent-config.json`.
-
-## 🔌 The tools (MCP) that lift a weak model
-
-| Server | Why it matters for a weak model |
-|---|---|
-| **Serena** (semantic code over `gopls`) | Symbol-level reads/edits instead of whole files → fewer tokens, far fewer broken patches. *The* biggest win. |
-| **Atlassian / Jira** (sooperset) | Reads the real ticket; (read-write default) files / updates / transitions stories. |
-| **context7** | Live, version-pinned library docs → kills hallucinated / outdated APIs. |
-| **sequential-thinking** | Forces explicit decomposition before coding. |
-| **git**, **fetch** | Safe structured git ops; pull external specs/docs on demand. |
-
-Core set lives in [`.mcp.json`](.mcp.json); the full menu (filesystem, postgres, playwright, github) is in
-[`mcp.example.json`](mcp.example.json).
-
-## 🚀 Quickstart
+Read [INSTALL.md](INSTALL.md) for prerequisites and the deterministic installer. Python dependencies are declared in `requirements.txt`; install them in your chosen environment when needed. Nothing installs packages or launches workers silently.
 
 ```bash
-cp .env.example .env          # fill in tokens (GITHUB_PAT, JIRA_*, OPENAI_*)
-./setup.sh                    # pick your agent, wire MCP, install git hooks, verify
-# non-interactive: ./setup.sh pi | qwen | crush | opencode | claude | omp
-# toggle agents on/off:  edit config/pipeline.yaml, then ./setup.sh --pipeline
+# Preview scoped files and conflicts first; project repositories stay in place.
+./setup.sh --target /workspace/projects --harness codex --dry-run
+./setup.sh --target /workspace/projects --harness codex --non-interactive
+./setup.sh --target /workspace/projects --doctor
 ```
 
-Then drive a ticket through the pipeline:
+For agent-led setup paste the [onboarding prompt](docs/onboarding.md) into a primary harness. It uses the same installer/manifest as the script path. Existing `AGENTS.md`, hooks and configuration are preserved; generated ownership makes updates and uninstall reviewable.
 
-- **Claude Code** — `cd` into a service repo containing the kit, run `/spec PROJ-1234` … `/pr PROJ-1234`,
-  or let it auto-delegate to the subagents.
-- **pi** — `./setup.sh pi`, then `pi --model selfhosted/Qwen3-Coder-Next`; run `/run planner "spec PROJ-1234"`
-  or `/chain` the phases. See [`agents-config/pi/README.md`](agents-config/pi/README.md).
-- **Qwen Code / Crush / opencode / omp** — start the agent in the repo; it reads `AGENTS.md` + its MCP
-  config (omp inherits `.claude/` + `.mcp.json` natively — see `agents-config/omp/README.md`).
+Then ask your agent:
 
-Full setup & per-agent notes: **[INSTALL.md](INSTALL.md)**.
+> Implement `./requirements/retries.md` in billing-api. Follow its existing conventions, run relevant checks, and leave a local patch. Do not access remote systems.
 
-## 📦 What's in the box
+Or normalize work using the local CLI:
 
-```
-AGENTS.md            ← THE canonical instructions (read by pi/Qwen/Crush/opencode/omp/Codex/Cursor)
-CLAUDE.md            ← one-line @AGENTS.md shim + Claude-only extras  (single source of truth)
-.mcp.json            ← core MCP set: Serena + Atlassian + context7 + sequential-thinking + git + fetch
-mcp.example.json     ← full MCP menu incl. optional servers
-.env.example         ← secrets template (gitignored once filled)
-setup.sh             ← idempotent bootstrap (pick agent, wire MCP, verify)
-
-agents-config/       ← per-agent adapters, all pointing at ONE OpenAI-compatible /v1 endpoint
-  pi/                ← PRIMARY: models + packages + generated subagents + MCP adapter config
-  qwen/ crush/ opencode/ omp/   ← secondary harnesses (native MCP; omp reads .claude/ directly)
-  sampling-params.md ← pinned GLM-5.1 / Qwen3-Coder-Next sampling
-
-config/              ← pipeline.yaml (toggle which agents run) + security-policy.yaml (safety policy)
-
-.claude/
-  agents/            ← phase subagents (planner, tech-designer, engineer, qa-lead,
-                       go-code-reviewer, devops-lead) + rlm (recursive solver, utility).
-                       Which ones are active is governed by config/pipeline.yaml.
-  commands/          ← 8 phase commands (/spec /clarify /plan /tasks /implement /test /review /pr)
-                       + /rlm (recursive solver, utility)
-  skills/            ← serena-first, precommit, go-grpc-handler, sqlc-migration, testify-suite,
-                       test-debug-loop, codebase-onboarding, rlm-recursive, commit-message, jira-flow
-  workflows/         ← rlm (genuine bounded-recursion engine behind /rlm under Claude Code)
-  rules/             ← path-scoped Go-layering rules (load only when editing internal/**)
-  settings.json      ← permissions + hooks (the Claude enforcement layer)
-.githooks/pre-commit ← the SAME guardrails for open agents (no hook layer) + CI
-
-templates/           ← fill-in scaffolds: spec, plan, tasks, pr, handoff
-specs/               ← per-feature artifacts: specs/<TASK_ID>-<slug>/{spec,plan,tasks,handoff}.md
-docs/                ← weak-model-playbook.md (the "why") + readme-ru.md + optional-graph-engine.md
-.claude-plugin/      ← plugin + marketplace manifests (optional distribution channel)
+```bash
+python3 scripts/sdlc.py intake 'Add stable sorting to the results' --source prompt --root /workspace/projects --delivery patch
+python3 scripts/sdlc.py config explain /workspace/projects/.sdlc/workspace.json
 ```
 
-## 🧭 Customize for your project
+## Independent choices
 
-The kit ships pre-filled with placeholders so the examples read like real code. Swap them for your own:
-
-| Placeholder | Replace with | Where |
-|---|---|---|
-| `acme` / `Acme` | your org / display name | module paths, config, prose |
-| `github.com/acme` | your private module prefix | `GOPRIVATE`, import examples |
-| `PROJ`, `TEAM` | your Jira project keys | `JIRA_PROJECTS_FILTER`, examples |
-| `your-org.atlassian.net` | your Atlassian site | `.env` |
-| `WORKSPACE_ROOT` | your multi-repo root path | `.env` |
-
-Project-specific rules go in a **nested `AGENTS.md`** (template: `AGENTS.nested.example.md`) — the kit's
-base stays untouched and upgradeable.
-
-**Turn agents on/off.** `config/pipeline.yaml` is the single source of truth for which agents run. Set
-`enabled: false` on any you don't want (e.g. `devops-lead` if your team has no infra work, or `rlm`),
-then `./setup.sh --pipeline` — it parks the disabled agent (`.md` → `.md.disabled`, so Claude stops
-seeing it), re-generates the pi/opencode copies without it, and re-verifies. Reversible: flip the flag
-back and re-run.
-
-**Tune the reviewer.** `go-code-reviewer` does a universal multi-pass Go review (correctness,
-SOLID/DRY/KISS/YAGNI, idioms, security, tests) plus a clearly-marked `PROJECT-SPECIFIC RULES` block
-(between `<!-- BEGIN/END PROJECT RULES -->` in `.claude/agents/go-code-reviewer.md`) seeded with the
-interface/mapper/partial-struct conventions — edit that block to encode your team's house rules.
-
-## ✅ Prerequisites
-
-`uv`/`uvx` (Serena, Atlassian, git/fetch MCP) · Node 18+ (`npx` servers, pi/Qwen) · `python3` (subagent
-porters + guard hook) · Docker (optional — local-infra stack only) · Go toolchain +
-[`go-task`](https://taskfile.dev) · a `GITHUB_PAT` so Serena/gopls can index private modules.
-
-Runs on **Linux or macOS** (scripts stay compatible with macOS bash 3.2 + BSD userland; WSL = Linux).
-
-## 📚 Documentation
-
-| Doc | What it covers |
+| Choice | Options |
 |---|---|
-| [AGENTS.md](AGENTS.md) | The canonical agent instructions (read this first) |
-| [INSTALL.md](INSTALL.md) | Prerequisites, bootstrap, per-agent setup, troubleshooting |
-| [FLOW.md](FLOW.md) | The eight-phase pipeline, artifacts, and state model |
-| [docs/weak-model-playbook.md](docs/weak-model-playbook.md) | Why the kit is shaped this way (design rationale) |
-| [docs/readme-ru.md](docs/readme-ru.md) | 🇷🇺 Русскоязычный обзор кита |
-| [KIT-DEV.md](KIT-DEV.md) | Canonical facts for kit authors/maintainers |
+| Harness | Codex, Claude Code, OpenCode, Cursor; legacy pi/Qwen/Crush/omp |
+| Requirement | Chat, local Markdown/text/PDF through supported tools, repository docs, URL or enabled issue/wiki/MCP connector |
+| Workflow | Quick fix, feature, cross-repo, investigation, high-risk |
+| Delivery | Report, working tree, patch, local commit/branch, explicitly authorized GitHub PR or GitLab MR |
 
-## 📄 License
+A quick fix needs a short goal/checklist and targeted tests. A feature gets a short design and review. Cross-repository work uses dependency ordering and isolated worktrees. Investigation creates a report without product code or commits. User/project policy determines conditional approval gates; there is no universal eight-stage ceremony.
 
-[MIT](LICENSE) © Open-Model SDLC Kit contributors.
+## What ships
+
+- [Universal contract](AGENTS.md), [workflow recipes](FLOW.md), neutral [role library](roles/) and optional [Go profile](profiles/go/).
+- Read-only discovery, deterministic native harness adapters, ownership manifest, dry-run, doctor and safe uninstall.
+- Versioned configuration/schema validation, effective settings/provenance, explicit path allowlists and non-weakening safety policy.
+- [Requirements and delivery adapters](docs/connectors.md), source provenance, bounded untrusted input and local-first outputs.
+- [Durable local orchestration](docs/orchestration.md): dependency tasks, isolated workers, recorded verification, retries/cancellation, explicit watches and audit events. Opt-in only.
+- [Legacy compatibility](docs/compatibility.md), reusable Go/Jira/Serena skills and optional read-only RLM/graph analysis.
+
+## Safety and verification
+
+Remote reads use only enabled connectors; external writes require scoped authorization. A patch request never pushes or opens a PR. No automatic issue transitions, merge or deployment. Native agent permissions and project policies remain in force. Missing tools, failed tests and unsupported provider features are reported honestly; generated fixtures do not certify live external accounts.
+
+```bash
+bash scripts/check-kit.sh
+python3 -m unittest discover -s tests -v
+```
+
+See [onboarding](docs/onboarding.md), [connectors](docs/connectors.md), [workflows](docs/workflows.md), [orchestration](docs/orchestration.md), [compatibility](docs/compatibility.md), [maintainer architecture](KIT-DEV.md), and the [Russian overview](docs/readme-ru.md). Licensed under [MIT](LICENSE).

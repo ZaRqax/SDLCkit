@@ -1,27 +1,41 @@
 {
   "context": {
-    "fileName": ["AGENTS.md", "QWEN.md"]
+    "fileName": [
+      "AGENTS.md",
+      "QWEN.md"
+    ]
   },
   "permissions": {
     "allow": [
-      "Bash(task fmt:*)", "Bash(task lint:*)", "Bash(task test:*)", "Bash(task sqlc:*)",
-      "Bash(task mocks:*)", "Bash(task gen:*)", "Bash(task precommit:*)", "Bash(task gqlgen:*)",
-      "Bash(go test:*)", "Bash(go build:*)", "Bash(go vet:*)", "Bash(gofumpt:*)", "Bash(gofmt:*)",
-      "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)", "Bash(git branch:*)", "Bash(git show:*)",
-      "Bash(grep:*)", "Bash(rg:*)", "Bash(ls:*)", "Bash(cat:*)", "Bash(python3 scripts/pipeline_config.py:*)"
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(rg:*)"
     ],
     "ask": [
-      "Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git checkout:*)", "Bash(git rebase:*)",
-      "Bash(task db:migrate:*)", "Bash(task db:refresh:*)", "Bash(go get:*)", "Bash(go mod:*)",
-      "Bash(gh pr:*)", "Bash(kubectl:*)", "Bash(terraform:*)", "Bash(docker:*)",
-      "Bash(npm install:*)", "Bash(pi install:*)", "Bash(uv add:*)", "Bash(pip install:*)"
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(glab mr create:*)",
+      "Bash(go get:*)",
+      "Bash(npm install:*)",
+      "Bash(pip install:*)",
+      "Bash(kubectl apply:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(terraform apply:*)",
+      "Bash(git reset --hard:*)"
     ],
     "deny": [
-      "Read(.env)", "Read(./.env)", "Read(**/.env)",
-      "Edit(**/repository/postgres/sqlc/**)", "Edit(**/mocks/**)", "Edit(**/gen/**)",
-      "Edit(**/*.pb.go)", "Edit(**/*_gen.go)",
-      "Write(**/repository/postgres/sqlc/**)", "Write(**/mocks/**)", "Write(**/gen/**)",
-      "Write(**/*.pb.go)", "Write(**/*_gen.go)"
+      "Read(./.env)",
+      "Read(./**/.env)",
+      "Bash(git push --force:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(glab mr merge:*)",
+      "Bash(terraform destroy:*)",
+      "Read(./**/id_rsa)",
+      "Read(./**/id_ed25519)",
+      "Read(./**/.aws/credentials)",
+      "Read(./**/credentials.json)"
     ]
   },
   "hooks": {
@@ -29,70 +43,24 @@
       {
         "matcher": "(edit|write_file)",
         "hooks": [
-          { "type": "command", "command": "bash $QWEN_PROJECT_DIR/.claude/hooks/format-and-guard.sh pre-edit", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "bash $QWEN_PROJECT_DIR/.claude/hooks/format-and-guard.sh pre-edit",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "run_shell_command",
         "hooks": [
-          { "type": "command", "command": "bash $QWEN_PROJECT_DIR/.claude/hooks/format-and-guard.sh pre-bash", "timeout": 10 }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "(edit|write_file)",
-        "hooks": [
-          { "type": "command", "command": "bash $QWEN_PROJECT_DIR/.claude/hooks/format-and-guard.sh post-edit", "timeout": 30 }
+          {
+            "type": "command",
+            "command": "bash $QWEN_PROJECT_DIR/.claude/hooks/format-and-guard.sh pre-bash",
+            "timeout": 10
+          }
         ]
       }
     ]
   },
-  "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": [
-        "--from", "git+https://github.com/oraios/serena",
-        "serena", "start-mcp-server",
-        "--context", "agent",
-        "--project-from-cwd",
-        "--mode", "planning",
-        "--mode", "editing"
-      ],
-      "env": { "GOPRIVATE": "github.com/acme", "GITHUB_TOKEN": "${GITHUB_PAT}" }
-    },
-    "atlassian": {
-      "command": "uvx",
-      "args": ["mcp-atlassian"],
-      "env": {
-        "JIRA_URL": "${JIRA_URL}",
-        "JIRA_USERNAME": "${JIRA_USERNAME}",
-        "JIRA_API_TOKEN": "${JIRA_API_TOKEN}",
-        "CONFLUENCE_URL": "${CONFLUENCE_URL}",
-        "CONFLUENCE_USERNAME": "${CONFLUENCE_USERNAME}",
-        "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}",
-        "JIRA_PROJECTS_FILTER": "${JIRA_PROJECTS_FILTER}",
-        "CONFLUENCE_SPACES_FILTER": "${CONFLUENCE_SPACES_FILTER}",
-        "READ_ONLY_MODE": "${ATLASSIAN_READ_ONLY}",
-        "ENABLED_TOOLS": "${ATLASSIAN_ENABLED_TOOLS}"
-      }
-    },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
-      "env": { "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}" }
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequentialthinking"]
-    },
-    "git": {
-      "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "${WORKSPACE_ROOT}"]
-    },
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"]
-    }
-  }
+  "mcpServers": {}
 }

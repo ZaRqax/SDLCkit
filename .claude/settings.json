@@ -1,50 +1,36 @@
 {
-  "enableAllProjectMcpServers": true,
-  "env": {
-    "GOPRIVATE": "github.com/acme"
-  },
+  "enableAllProjectMcpServers": false,
   "permissions": {
     "allow": [
-      "Bash(task fmt:*)",
-      "Bash(task lint:*)",
-      "Bash(task test:*)",
-      "Bash(task sqlc:*)",
-      "Bash(task mocks:*)",
-      "Bash(task gen:*)",
-      "Bash(go test:*)",
-      "Bash(go build:*)",
-      "Bash(go vet:*)",
-      "Bash(gofumpt:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
-      "Bash(git add:*)",
-      "Bash(grep:*)",
-      "Bash(rg:*)",
-      "Bash(grpcurl:*)"
+      "Bash(rg:*)"
     ],
     "ask": [
       "Bash(git push:*)",
-      "Bash(git commit:*)",
-      "Bash(git reset --hard:*)",
-      "Bash(task db:migrate:*)",
-      "Bash(task db:refresh:*)",
+      "Bash(gh pr create:*)",
+      "Bash(glab mr create:*)",
       "Bash(go get:*)",
-      "Bash(gh pr merge:*)",
+      "Bash(npm install:*)",
+      "Bash(pip install:*)",
+      "Bash(kubectl apply:*)",
       "Bash(kubectl delete:*)",
-      "Bash(terraform apply:*)"
+      "Bash(terraform apply:*)",
+      "Bash(git reset --hard:*)"
     ],
     "deny": [
       "Read(./.env)",
       "Read(./**/.env)",
-      "Edit(**/repository/postgres/sqlc/**)",
-      "Edit(**/mocks/**)",
-      "Edit(**/gen/**)",
-      "Edit(**/*.pb.go)",
-      "Edit(**/*_gen.go)",
-      "Write(**/repository/postgres/sqlc/**)",
-      "Write(**/mocks/**)",
-      "Write(**/gen/**)"
+      "Bash(git push --force:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(glab mr merge:*)",
+      "Bash(terraform destroy:*)",
+      "Read(./**/id_rsa)",
+      "Read(./**/id_ed25519)",
+      "Read(./**/.aws/credentials)",
+      "Read(./**/credentials.json)"
     ]
   },
   "hooks": {
@@ -52,21 +38,21 @@
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/format-and-guard.sh pre-edit", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/format-and-guard.sh pre-edit",
+            "timeout": 10
+          }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/format-and-guard.sh pre-bash", "timeout": 10 }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/format-and-guard.sh post-edit", "timeout": 30 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/format-and-guard.sh pre-bash",
+            "timeout": 10
+          }
         ]
       }
     ]

@@ -11,7 +11,7 @@ Launch the **RLM recursive solver** (Recursive Language Models, arXiv:2512.24601
 This is a **utility**, not a pipeline phase. Use it when the task is too big for one pass — a huge
 context or a broad sweep (audit all services for X, understand a whole subsystem, answer over a massive
 log/spec/diff). It is **read-only**: it reads/analyzes and returns a synthesized answer; it does not
-edit code (writes go through the engineer + the spec→…→pr pipeline).
+edit code (writes go through the isolated implementation coordinator).
 
 > Runs under Claude Code as `/rlm <task>`. It is also a plain runbook — any agent (pi, Qwen, Crush,
 > opencode) executes the same protocol by hand. Full reference: the **rlm-recursive** skill.

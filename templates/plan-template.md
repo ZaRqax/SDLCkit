@@ -1,43 +1,29 @@
-<!-- Phase 3 artifact. Copy to specs/<TASK_ID>-<slug>/plan.md. Reads spec.md; describes HOW.
-     Honor clean architecture (domain → repository → service → transport). Keep ≤ ~150 lines. -->
+# Plan — <Work ID>
 
-# Plan: <TASK_ID> — <short title>
+## Inputs and constraints
 
-- **Spec:** ./spec.md
-- **Status:** DRAFT → APPROVED
+<Requirement/source revisions, nearest project instructions, effective policy and requested delivery.>
 
-## 1. Approach (1 paragraph)
-<The chosen design in plain words, and why over the alternative(s).>
+## Approach
 
-## 2. Architecture & layering
-<Where each change lands across domain / repository / service / transport(grpc). Confirm transport
-never calls a repository directly. New interfaces & domain types listed BEFORE their impls.>
+<Smallest correct design using the repository's architecture. Include only meaningful tradeoffs.>
 
-## 3. Data model & migrations
-<New/changed tables, columns, indexes. Migration name(s). SQLC queries to add (in db/queries/).
-Remember: regenerate with `task sqlc`, never hand-edit sqlc/.>
+## Projects, contracts and dependencies
 
-## 4. Contracts (proto / gRPC / Kafka / GraphQL)
-<New/changed proto messages & RPCs (contracts repo, `task gen`). Kafka topics & event shapes.
-GraphQL schema changes (`task gqlgen`). Domain↔proto mapping notes.>
+| Project | Verified files / symbols | Change | Depends on |
+|---|---|---|---|
+| <id> | <paths and symbols> | <behavior> | <task/project IDs> |
 
-## 5. Affected files (verified to exist — grep/Serena, don't guess)
-| File | Change |
-|---|---|
-| `internal/service/...go` | ... |
-| `internal/transport/grpc/...go` | ... |
+## Data and generated code
 
-## 6. Test strategy
-<Unit (testify suites, table-driven) per layer; integration; what mocks regenerate (`task mocks`).
-Which ACs each test covers.>
+<Input changes, actual generator commands, configured generated paths, migration approval if needed.>
 
-## 7. Rollout / flags / risks
-<Feature flag? Backward-compat? Migration order? On-call-relevant log lines (warn/error only).>
+## Verification and review
 
----
-## Plan checklist
-- [ ] Every AC in spec.md is addressed by something in this plan.
-- [ ] Clean architecture preserved; no transport→repository shortcut.
-- [ ] All affected files verified to exist.
-- [ ] Codegen steps identified (sqlc / mocks / proto / gqlgen).
-- [ ] Test strategy maps tests → ACs.
+| Acceptance criterion | Check / command | Expected evidence |
+|---|---|---|
+| AC-1 | <actual command> | <observable result> |
+
+## Isolation, delivery and risks
+
+<Worktree ownership for parallel work, deliverable, authority gates and relevant recovery concerns.>

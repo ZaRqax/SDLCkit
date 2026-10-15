@@ -1,26 +1,14 @@
-<!-- Per-service nested AGENTS.md template. The kit's root AGENTS.md holds the workspace-wide rules;
-     drop a filled copy of THIS file at the root of an individual service repo (e.g.
-     catalog/AGENTS.md) to add service-specific detail. Agents read the NEAREST
-     AGENTS.md to the file they're editing, so keep this short — only what differs from the root. -->
+# Project instructions — example
 
-# AGENTS.md — <Service name> (e.g. Catalog)
+Preserve this repository's existing architecture and conventions. Add concrete project guidance here; this example does not impose a language, tracker, branch model or delivery provider.
 
-Inherits all workspace rules from the root `AGENTS.md`. Service-specific notes:
+- Project ID / ownership: <id and boundaries>
+- Verified commands: <format, lint, test, build, generators>
+- Generated paths: <patterns and how to regenerate>
+- Architecture/contracts: <actual layers and compatibility requirements>
+- Base branch and naming: <repository policy>
+- Required checks/review: <gates proportional to risk>
+- Delivery: <default local artifact and allowed publishers>
+- Policy: external writes require explicit scoped authorization; destructive actions, secret exposure, auto-merge and production deploy are forbidden.
 
-## This service in one line
-<What it owns, e.g. "Products, categories, documents, assemblies." Its gRPC + Kafka surface.>
-
-## Commands (anything that differs from the root)
-- DB: `task db:migrate:up` against database `<db-name>` on Postgres `:15000`.
-- Local run: `task run` (or `task docker:go`), gRPC on `:50051`.
-- Codegen this service uses: `task sqlc` <and/or `task gqlgen` / proto via contracts `task gen`>.
-
-## Domain & layout notes
-- Key domains: `<list the main domain types>`.
-- Repository factory: `<note any product-type-specific factory behavior>`.
-- Kafka topics produced/consumed: `<topic names>`.
-- External integrations: `<e.g. OpenSearch index, Redis cache, S3>`.
-
-## Gotchas specific to this service
-- <e.g. "Offer pricing must go through the pricing service, never recomputed in transport.">
-- <e.g. "Inventory sync events are idempotent on (offerID, version) — preserve that.">
+Mirror executable commands/patterns in `.sdlc/project.yaml` or `.json` when using automation. Never store credentials in instructions or configuration. Optional Go conventions live in the kit's `profiles/go/`.

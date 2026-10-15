@@ -1,65 +1,26 @@
-# Contributing
+# Contributing to SDLCkit
 
-Thanks for improving the **Open-Model SDLC Kit**. This kit is an *instruction surface* for coding
-agents, so the bar is a little different from a normal codebase: the words and examples **are** the
-product. A sloppy sentence becomes a sloppy agent.
+Keep the universal core independent of language, issue tracker, git host, model and harness. Preserve target conventions and user-owned files. Put stack-specific conventions in optional profiles and keep reusable legacy skills/entrypoints compatible.
 
-## Ground rules
-
-1. **One source of truth.** Durable rules live once in [`AGENTS.md`](AGENTS.md). `CLAUDE.md` is only a
-   `@AGENTS.md` shim plus a small Claude-only section. Don't duplicate a rule into both — edit `AGENTS.md`.
-2. **Stay generic.** This is a public template. **Never** commit a real company, product, service,
-   person, host, token, or internal ticket key. Use the established placeholders:
-   | Placeholder | Means |
-   |---|---|
-   | `acme` / `Acme`, `github.com/acme` | your org / private module prefix |
-   | `PROJ`, `TEAM` | Jira project keys |
-   | `your-org.atlassian.net` | Atlassian site |
-   | `WORKSPACE_ROOT` | multi-repo root path |
-3. **English only** in every shipped file (code, comments, identifiers, instructions). The single
-   exception is `docs/readme-ru.md`. The CI verifier fails on Cyrillic anywhere else.
-4. **Show, don't tell.** Every rule you add should carry one real, compilable example. Weak models copy
-   patterns better than they reason from abstractions — see [docs/weak-model-playbook.md](docs/weak-model-playbook.md).
-5. **Smallest change that does the job.** No speculative abstractions or "headroom" nobody asked for.
-
-## How the pieces fit
-
-| You want to change… | Edit… | Then… |
+| Change | Canonical location | Validation |
 |---|---|---|
-| A global rule/convention | `AGENTS.md` | re-read §0/§9 to keep it consistent |
-| A phase's behavior | `.claude/commands/<phase>.md` | keep it usable as a plain runbook too |
-| A specialist agent | `.claude/agents/<name>.md` (canonical) | regenerate pi subagents (below) |
-| A reusable recipe | `.claude/skills/<name>/SKILL.md` | include one worked example |
-| A scaffold | `templates/*.md` | keep fill-in markers obvious |
-| pi wiring / packages | `agents-config/pi/*` | bump pinned versions as `chore(deps)` |
+| Universal contract | `AGENTS.md` | neutrality and scoped-policy checks |
+| Roles and skills | `roles/*.md`, `skills/` | regenerate Claude bridges and legacy snapshots |
+| Workflow | `config/workflows/*.yaml` | DAG/role/condition validation and runtime tests |
+| Configuration/policy | `sdlc/config.py`, `sdlc/policy.py`, schemas | invalid/unsafe inputs and precedence tests |
+| Harness/onboarding | `sdlc` discovery/installer/harness modules | deterministic preview/install/uninstall and native adapter tests |
+| Sources/delivery | integrations/delivery modules and contracts | fake process transport, provenance, authorization and reconciliation tests |
+| Runtime/watchers | runtime modules | isolation, lease/retry/cancellation and opt-in audit tests |
 
-**The pi subagents under `agents-config/pi/agents/` are generated** — don't hand-edit them. Edit the
-canonical agents in `.claude/agents/`, then:
+Read existing code before editing and verify APIs against installed tool versions/official documentation. Never hand-edit generated role bridges, pi snapshots or target codegen. Never commit credentials, local override values or private work artifacts. All shipped code and instructions are English; translated docs have explicit language suffixes.
 
-```bash
-python3 agents-config/pi/port-agents.py        # regenerate agents-config/pi/agents/
-```
-
-Authoring formats (frontmatter, body structure) are specified in [KIT-DEV.md](KIT-DEV.md).
-
-## Before you open a PR
+Before a local commit run:
 
 ```bash
-bash scripts/check-kit.sh        # structure, JSON validity, frontmatter, English-only, pi setup
+python3 scripts/render-role-bridges.py
+python3 agents-config/pi/port-agents.py
+bash scripts/check-kit.sh
+python3 -m unittest discover -s tests -v
 ```
 
-CI runs the same verifier on every push and pull request — it must be green.
-
-Quick self-check:
-
-- [ ] No internal identifiers introduced (placeholders only).
-- [ ] English-only in shipped files (RU doc excepted).
-- [ ] New rules carry a concrete example.
-- [ ] pi subagents regenerated if `.claude/agents/` changed.
-- [ ] `scripts/check-kit.sh` passes.
-
-## Commits & PRs
-
-- Conventional commits: `feat: …`, `fix: …`, `docs: …`, `chore(deps): …`.
-- Keep the PR description to an ordered list of what changed and why.
-- Be kind in review; the goal is a kit that makes *every* agent better.
+A PR description should state the concrete resulting behavior, ordered material changes and actual validation/limitations. Use the repository's branch/commit conventions; no Jira key, develop base or publication ceremony is universal. Keep plugin identifiers and documented shell/porter contracts stable unless a tested migration is provided in `docs/compatibility.md`. Do not push, publish, merge or change external issues without authorization.

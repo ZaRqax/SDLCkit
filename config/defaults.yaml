@@ -1,0 +1,65 @@
+schema_version: 2
+workspace:
+  name: workspace
+  root: .
+  projects: []
+  allowed_paths: []
+agent:
+  default_harness: auto
+  model: inherit
+  execution_mode: supervised
+workflow:
+  default: auto
+  gates:
+    external_writes: approval_required
+    destructive_actions: forbidden
+    high_risk_changes: approval_required
+requirements:
+  enabled:
+  - prompt
+  - local_files
+  fallback: prompt
+integrations:
+  jira:
+    enabled: false
+  confluence:
+    enabled: false
+  linear:
+    enabled: false
+  github:
+    enabled: false
+  gitlab:
+    enabled: false
+  notion:
+    enabled: false
+  url:
+    enabled: false
+  custom_mcp: []
+delivery:
+  default: working_tree
+  allowed:
+  - working_tree
+  - patch
+  - commit
+  - local_branch
+  - github_pr
+  - gitlab_mr
+  - report
+  never_auto_merge: true
+verification:
+  discover_commands: true
+  require_changed_area_tests: true
+  report_unavailable_checks: true
+parallelism:
+  enabled: false
+  max_workers: 2
+  strategy: worktree
+policy:
+  external_write: approval_required
+  destructive_actions: forbidden
+  deny: []
+orchestration:
+  enabled: false
+  max_queue: 100
+  max_runs: 10
+  poll_interval_seconds: 60

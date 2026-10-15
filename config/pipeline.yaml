@@ -1,72 +1,104 @@
-# pipeline.yaml — the SDLC pipeline roster: which specialist agents are active, and which are off.
-#
-# SINGLE SOURCE OF TRUTH for the agent set. To drop an agent from EVERY harness (Claude, pi, opencode,
-# and the Qwen/Crush prose), set `enabled: false` here and run:
-#
-#     ./setup.sh --pipeline          # (or: bash scripts/apply-pipeline.sh)
-#
-# That step reconciles `.claude/agents/<name>.md`  <->  `<name>.md.disabled` (so Claude stops
-# discovering it), re-runs the pi/opencode porters — which skip disabled agents and any command bound
-# only to one — and re-verifies with check-kit. Re-enable by setting `true` and re-running. The flip is
-# reversible and loses nothing; it shows up in git as a rename so your pipeline choices stay legible.
-#
-# Roles:
-#   core-phase  — owns one or more of the 8 pipeline phases. Disabling one BREAKS that phase unless you
-#                 run its command (.claude/commands/<cmd>.md) by hand. check-kit warns if a core phase
-#                 is off. You normally leave all five core-phase agents enabled.
-#   specialist  — invoked inside a phase when the plan flags that kind of work. Safe to disable.
-#   utility     — not a pipeline phase at all; an ad-hoc tool. Safe to disable.
-#
-# Parser: scripts/pipeline_config.py reads this with a tiny stdlib YAML SUBSET. Keep the exact shape
-# below — `agents:` then 2-space-indented `<name>:` then 4-space-indented `key: value` attributes,
-# with inline `[a, b]` lists. Do not introduce other YAML features (anchors, multi-line scalars, etc.).
-
+# Legacy roster remains authoritative for legacy output; new native role selection is config/roles.yaml.
+# apply-pipeline never parks canonical sources.
 agents:
   planner:
     role: core-phase
-    phases: [1, 2]
-    commands: [spec, clarify]
+    phases: []
+    commands:
+    - spec
+    - clarify
     enabled: true
-    note: "spec + clarify — read the Jira ticket, write spec.md, resolve open questions"
-
+    note: Compatibility adapter for neutral analyst role; no fixed workflow stages
   tech-designer:
     role: core-phase
-    phases: [3, 4]
-    commands: [plan, tasks]
+    phases: []
+    commands:
+    - plan
+    - tasks
     enabled: true
-    note: "plan + tasks — architecture/data model/contracts, then the ordered AC-traceable task list"
-
+    note: Compatibility adapter for neutral architect role; no fixed workflow stages
   engineer:
     role: core-phase
-    phases: [5, 8]
-    commands: [implement, pr]
+    phases: []
+    commands:
+    - implement
+    - pr
+    - deliver
     enabled: true
-    note: "implement one task at a time with Serena edits; open the [WIP] PR"
-
+    note: Compatibility adapter for neutral implementer role; no fixed workflow stages
   qa-lead:
     role: core-phase
-    phases: [6]
-    commands: [test]
+    phases: []
+    commands:
+    - test
     enabled: true
-    note: "test — map each AC to a testify table-driven test; drive task lint/test green"
-
+    note: Compatibility adapter for neutral verifier role; no fixed workflow stages
   go-code-reviewer:
-    role: core-phase
-    phases: [7]
-    commands: [review]
-    enabled: true
-    note: "review — multi-pass Go review + spec<->code drift; bounce every blocker"
-
+    role: specialist
+    phases: []
+    commands: []
+    enabled: false
+    note: Compatibility adapter for neutral go-reviewer role; no fixed workflow stages
   devops-lead:
     role: specialist
-    phases: [5]
+    phases: []
     commands: []
-    enabled: true
-    note: "infra slice of a story (Taskfile/Docker/Helm/CI). Disable if your team has no infra work."
-
+    enabled: false
+    note: Compatibility adapter for neutral devops-reviewer role; no fixed workflow
+      stages
   rlm:
     role: utility
     phases: []
-    commands: [rlm]
+    commands:
+    - rlm
+    enabled: false
+    note: Compatibility adapter for neutral rlm role; no fixed workflow stages
+  analyst:
+    role: core-phase
+    phases: []
+    commands: []
     enabled: true
-    note: "recursive solver for too-big read-only tasks. Not a pipeline phase; safe to disable."
+    note: Compatibility adapter for neutral analyst role; no fixed workflow stages
+  architect:
+    role: core-phase
+    phases: []
+    commands: []
+    enabled: true
+    note: Compatibility adapter for neutral architect role; no fixed workflow stages
+  coordinator:
+    role: core-phase
+    phases: []
+    commands: []
+    enabled: true
+    note: Compatibility adapter for neutral coordinator role; no fixed workflow stages
+  delivery:
+    role: core-phase
+    phases: []
+    commands: []
+    enabled: true
+    note: Compatibility adapter for neutral delivery role; no fixed workflow stages
+  explorer:
+    role: core-phase
+    phases: []
+    commands: []
+    enabled: true
+    note: Compatibility adapter for neutral explorer role; no fixed workflow stages
+  implementer:
+    role: core-phase
+    phases: []
+    commands: []
+    enabled: true
+    note: Compatibility adapter for neutral implementer role; no fixed workflow stages
+  reviewer:
+    role: core-phase
+    phases: []
+    commands:
+    - review
+    enabled: true
+    note: Compatibility adapter for neutral reviewer role; no fixed workflow stages
+  verifier:
+    role: core-phase
+    phases: []
+    commands: []
+    enabled: true
+    note: Compatibility adapter for neutral verifier role; no fixed workflow stages

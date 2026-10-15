@@ -27,8 +27,19 @@ handoff/*.json
 # on purpose (your pipeline roster stays legible in git); only the generated mirror below is ignored.
 /agents/
 /commands/
-/skills/
 /hooks/
+
+# Local workspace overrides, ownership backups and durable run state (profiles are shareable).
+**/.sdlc/local.yaml
+**/.sdlc/local.json
+**/.sdlc/runs/
+**/.sdlc/deliveries/
+**/.sdlc/backups/
+**/.sdlc/generated-manifest.json
+**/.sdlc/install-journal.json
+**/.sdlc/*.lock
+**/.sdlc/*.sqlite*
+**/.sdlc/*.db*
 
 # Python bytecode (from port-*.py / check-kit py_compile)
 __pycache__/

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "stages"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "needs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "when": {
+            "enum": [
+              "always",
+              "nontrivial",
+              "requires_review",
+              "high_risk"
+            ]
+          }
+        }
+      }
+    },
+    "quality": {
+      "type": "object"
+    },
+    "gates": {
+      "type": "object"
+    },
+    "allowed_effects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

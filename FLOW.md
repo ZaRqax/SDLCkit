@@ -1,68 +1,29 @@
-# FLOW.md — the SDLC pipeline
+# Workflows sized to the task
 
-The kit runs work through eight gated phases. Each phase reads the previous artifact and writes the
-next into `specs/<TASK_ID>-<slug>/`, and updates the legible state file `handoff.md`. Three human
-gates keep a weak model on the rails: **approve the clarified spec**, **approve the task list**,
-**review the PR**.
+A workflow is independent of harness, model, requirement provider and delivery. Recipes live in `config/workflows/`. Choose from verified scope and risk; explicit user constraints such as plan only, patch only or no remote access remain authoritative.
 
-```
-  Jira ticket
-      │
- ┌────▼─────┐   /spec        planner          spec.md
- │ 1 SPEC   │────────────────────────────────────────────────►
- └────┬─────┘
- ┌────▼─────┐   /clarify     planner          spec.md §6 resolved
- │ 2 CLARIFY│  ◆ GATE: human answers open questions
- └────┬─────┘
- ┌────▼─────┐   /plan        tech-designer    plan.md
- │ 3 PLAN   │────────────────────────────────────────────────►
- └────┬─────┘
- ┌────▼─────┐   /tasks       tech-designer    tasks.md  ([P], AC-traceable, story files)
- │ 4 TASKS  │  ◆ GATE: human approves tasks.md before any code
- └────┬─────┘
- ┌────▼─────┐   /implement   engineer         code (one task at a time, Serena symbol edits)
- │ 5 IMPL   │────────────────────────────────────────────────►
- └────┬─────┘
- ┌────▼─────┐   /test        qa-lead          test-plan.md + green task lint/test  ◆ Definition of Done
- │ 6 TEST   │────────────────────────────────────────────────►
- └────┬─────┘
- ┌────▼─────┐   /review      go-code-reviewer findings; spec↔plan↔tasks↔code cross-check
- │ 7 REVIEW │  ◆ every blocker fixed (bounce → engineer)
- └────┬─────┘
- ┌────▼─────┐   /pr          engineer         [WIP] [TASK_ID] PR (templates/pr-template.md)
- │ 8 PR     │  ◆ GATE: human reviews & merges (≥2 approvals; never self-merge)
- └──────────┘
-```
-
-## Artifacts per feature (`specs/<TASK_ID>-<slug>/`)
-| File | Written in | From template |
+| Recipe | Selected stages | Evidence |
 |---|---|---|
-| `spec.md` | spec + clarify | `templates/spec-template.md` |
-| `plan.md` | plan | `templates/plan-template.md` |
-| `tasks.md` | tasks | `templates/tasks-template.md` |
-| `test-plan.md` | test | (inline format in qa-lead) |
-| `handoff.md` | every phase | `templates/handoff-template.md` |
+| quick-fix | intake → context → execute → verify → deliver | Short goal/checklist, diff and targeted results |
+| feature | intake → context → design → execute → verify → review → deliver | Source/ACs, concise plan/tasks, checks, findings and result |
+| cross-repo | feature stages with dependency DAG | Project/worktree ownership, contract/integration evidence and coordinated outputs |
+| investigation | intake → context → analysis → deliver | Findings, source references and report; no product edits or commits |
+| high-risk | feature stages with explicit risk gates | Design plus scoped data/infrastructure authorization and relevant evidence |
 
-## State & resumption
-`handoff.md` is the committed, legible source of truth: Status, Phase, Next agent, a pipeline
-checklist, quality gates, decisions, blockers, and an append-only Log. Any agent (or a fresh session)
-reads it to know exactly where the work stands and who runs next. `specs/INDEX.md` rolls feature
-statuses up across the workspace. (An optional JSON mirror `handoff/<TASK_ID>.json` exists only for
-the optional automation/graph layer — see `docs/optional-graph-engine.md`.)
+Clarification and approval are conditional gates. Ask only blocking questions; retain engineering assumptions with evidence. Reuse existing approval within its scope. No separate agent is required for each role or harmless stage.
 
-## Running it
-- **Claude Code:** invoke the slash commands `/spec … /pr`, or let it auto-delegate to the subagents
-  in `.claude/agents/` by description.
-- **pi / Qwen Code / Crush / opencode:** the same command files in `.claude/commands/` read as plain
-  runbooks — paste or reference them; the AGENTS.md workflow (§2) drives the same phases.
-- **omp (oh-my-pi):** reads `.claude/commands/` as native slash commands and `.claude/agents/` as
-  subagents directly (plus `AGENTS.md` + `.mcp.json`) — like Claude, no generated copies.
-- **Bug flow:** a bug still gets a spec (type: fix). For a tracked bug, planner files/links a Jira Bug
-  via the `jira-flow` skill before the fix is written.
+## Exact recipe grammar
 
-## Configuring which agents run
-The roster is data, not hard-wired: `config/pipeline.yaml` lists each agent with an `enabled` flag.
-Disable the ones you don't use (e.g. `devops-lead` if you have no infra work, or the `rlm` utility) and
-run `./setup.sh --pipeline` — it removes them from every harness and re-verifies. The five core-phase
-agents (planner, tech-designer, engineer, qa-lead, go-code-reviewer) each own a phase above, so keep
-them on unless you intend to run that phase's command by hand. Mechanics: KIT-DEV.md.
+Each version-1 recipe declares `id`, `stages` (`id`, canonical `role`, `needs`, `when`), `quality.required` and `gates`. Dependencies must exist and form a DAG. Shipped recipes use `when: always`; `sdlc.config.load_workflow` validates fixed conditions `always`, `nontrivial`, `requires_review`, `high_risk`. Runtime adapters also validate their supported bounded predicates; no arbitrary Python/JavaScript evaluation is allowed. A skipped conditional stage remains skipped with a reason; it cannot manufacture evidence for a required gate.
+
+## Artifacts and resumption
+
+For substantial work use `specs/<work-id>-<slug>/` with spec/plan/tasks, a readable handoff and verification/review/delivery evidence. Stable IDs are internal; upstream issue IDs remain optional references. `specs/INDEX.md` tracks project/workflow/state/output and update time. Runtime state and event records live locally under `.sdlc/` by default, not in a mandatory tracker.
+
+Record planned, running, passed, failed, skipped, unavailable and not-run distinctly. Resume from the saved revision, task status and attempt; never mark missing work completed. Worker crashes and publication uncertainty need different recovery: retry a failed isolated worker, but reconcile an uncertain publication before attempting a second create.
+
+## Commands and gates
+
+Retained `/spec`, `/clarify`, `/plan`, `/tasks`, `/implement`, `/test` and `/review` are composable runbooks, not forced phases. `/deliver` chooses the requested output; `/pr` remains the GitHub-specific alias and does not grant remote authority. Codex and other harnesses can read these runbooks without assuming Claude slash-command support.
+
+Always run relevant target-repository checks and record actual exit codes. A project may require stronger approvals/checks, while kit invariants cannot weaken: no secret exposure, destructive effects, shared-tree writers, auto-merge or production deployment. External writes and risky data/infrastructure actions retain authorization gates. See `config/security-policy.yaml`, `sdlc/policy.py` and [orchestration](docs/orchestration.md).

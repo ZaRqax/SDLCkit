@@ -45,10 +45,11 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, ".opencode")
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 try:
     import pipeline_config
+    from role_library import claude_source
 
     DISABLED_AGENTS = set(pipeline_config.disabled_agents())
     DISABLED_COMMANDS = set(pipeline_config.disabled_commands())
-except Exception:  # noqa: BLE001 — any import/parse failure must not break porting
+except ImportError:  # Legacy fallback only when the optional shared bridge is unavailable
     DISABLED_AGENTS, DISABLED_COMMANDS = set(), set()
 
 # Claude tool name -> opencode tool key.
@@ -58,7 +59,7 @@ COMMAND_AGENT = {
     "spec": "planner", "clarify": "planner",
     "plan": "tech-designer", "tasks": "tech-designer",
     "implement": "engineer", "test": "qa-lead",
-    "review": "go-code-reviewer", "pr": "engineer",
+    "review": "reviewer", "pr": "engineer", "deliver": "delivery",
     "rlm": "rlm",  # utility recursive solver (not a pipeline phase)
 }
 
@@ -136,8 +137,7 @@ def tool_grants(raw):
 
 def port_agent(path):
     name = os.path.splitext(os.path.basename(path))[0]
-    with open(path, encoding="utf-8") as f:
-        fm_raw, body = split_frontmatter(f.read())
+    fm_raw, body = split_frontmatter(claude_source(path))
     if fm_raw is None:
         return None
     fm = parse_fm(fm_raw)
@@ -187,7 +187,10 @@ def emit(src_dir, out_dir, porter, skip_names=frozenset()):
     for fn in sorted(os.listdir(src_dir)):
         if not fn.endswith(".md"):
             continue
-        if os.path.splitext(fn)[0] in skip_names:  # pipeline toggle: agent/command off
+        if os.path.splitext(fn)[0] in skip_names:
+            stale = os.path.join(out_dir, fn)
+            if os.path.isfile(stale):
+                os.unlink(stale)  # Legacy output directories contain generated files only.
             continue
         res = porter(os.path.join(src_dir, fn))
         if not res:

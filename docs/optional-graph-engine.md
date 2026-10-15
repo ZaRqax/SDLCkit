@@ -1,3 +1,5 @@
+> Optional traceability analysis reference. This engine is not a shipped prerequisite or the local task coordinator. The durable isolated-worker runtime is documented in `runtime/README.md` and `docs/orchestration.md`; RLM remains read-only research. Serena is optional and other repository tools remain supported. Historical examples below describe an optional Go-oriented add-on, not universal requirements.
+
 # Optional: the spec↔code graph + drift engine
 
 > **Status: opt-in add-on. NOT part of the lightweight core.** The kit ships **without** this engine
